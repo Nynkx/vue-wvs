@@ -1,7 +1,9 @@
 <template>
-  <header class="border">
-    <p>header</p>
-    <button @click="handleClick">show</button>
+  <header>
+    <md-toolbar>
+      <md-button @click="handleClick()">button</md-button>
+      <span class="md-title">Header</span>
+    </md-toolbar>
   </header>
 </template>
 

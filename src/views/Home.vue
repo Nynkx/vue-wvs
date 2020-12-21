@@ -1,9 +1,5 @@
 <template>
-  <div class="home">
-    <!-- <img alt="Vue logo" src="../assets/logo.png"> -->
-    <!-- msg="Welcome to Your Vue.js + TypeScript App" -->
-    <TheLayout />
-  </div>
+  <TheLayout />
 </template>
 
 <script lang="ts">

@@ -4,8 +4,8 @@ import Home from "../views/Home.vue";
 
 Vue.use(VueRouter);
 
-const About = () => import("../views/About.vue");
-const Page404 = () => import("../views/Page404.vue");
+const About = () => import("@/views/About.vue");
+const Page404 = () => import("@/views/Page404.vue");
 
 const routes = [
   {

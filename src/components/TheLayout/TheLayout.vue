@@ -1,8 +1,9 @@
 <template>
   <div class="app default-layout">
     <TheHeader />
-    <div class="wrapper">
+    <div class="wrapper border">
       <TheSidebar />
+      <div class="border" style="flex:1">content</div>
     </div>
   </div>
 </template>

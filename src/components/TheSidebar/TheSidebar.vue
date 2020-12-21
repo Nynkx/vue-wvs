@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 export default {
   name: "TheSidebar",
   computed: {
@@ -17,13 +17,16 @@ export default {
 
 <style lang="scss" scoped>
 .sidebar {
-  position: absolute;
+  position: relative;
   top: 0;
-  width: 400px;
-  left: -100%;
-  transition: left 300ms ease-in-out;
+  left: 0;
+  width: 350px;
+  height: 100%;
+  margin-left: -350px;
+  overflow-x: hidden;
+  transition: margin-left 500ms ease;
 }
 .active {
-  left: 0;
+  margin-left: 0;
 }
 </style>
