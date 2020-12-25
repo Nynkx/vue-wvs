@@ -1,19 +1,19 @@
 <template>
-  <div id="app" class="border">
-    <!-- <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div> -->
-    <router-view />
-  </div>
+  <v-app>
+    <router-view></router-view>
+  </v-app>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  height: 100%;
-}
-</style>
+<script>
+export default {
+  name: "App",
+
+  components: {
+    //HelloWorld,
+  },
+
+  data: () => ({
+    //
+  }),
+};
+</script>

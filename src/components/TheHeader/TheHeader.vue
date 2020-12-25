@@ -1,9 +1,23 @@
 <template>
   <header>
-    <md-toolbar>
-      <md-button @click="handleClick()">button</md-button>
-      <span class="md-title">Header</span>
-    </md-toolbar>
+    <v-app-bar>
+      <!-- <v-btn @click="handleClick()">button</v-btn> -->
+      <v-app-bar-nav-icon @click="handleClick()"></v-app-bar-nav-icon>
+      <v-toolbar-title>Header</v-toolbar-title>
+      <v-spacer></v-spacer>
+
+      <v-text-field
+        prepend-inner-icon="mdi-magnify"
+        label="Search..."
+        solo
+        hide-details="true"
+      ></v-text-field>
+
+      <v-spacer></v-spacer>
+      <v-toolbar-title>a</v-toolbar-title>
+      <v-toolbar-title>a</v-toolbar-title>
+      <v-toolbar-title>a</v-toolbar-title>
+    </v-app-bar>
   </header>
 </template>
 

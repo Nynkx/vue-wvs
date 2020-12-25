@@ -12,6 +12,9 @@ export default {
       return this.$store.state.sidebar.show;
     },
   },
+  mounted: () => {
+    console.log("Sidebar mounted!");
+  },
 };
 </script>
 
@@ -20,9 +23,9 @@ export default {
   position: relative;
   top: 0;
   left: 0;
-  width: 350px;
+  width: 300px;
   height: 100%;
-  margin-left: -350px;
+  margin-left: -300px;
   overflow-x: hidden;
   transition: margin-left 500ms ease;
 }
