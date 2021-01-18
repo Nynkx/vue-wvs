@@ -1,7 +1,11 @@
 <template>
-  <div class="sidebar border" :class="{ active: show }">
-    <p>Sidebar Here</p>
-  </div>
+  <v-card>
+    <v-navigation-drawer class="sidebar" :class="{ active: show }">
+      <v-list-item>
+        Dashboard
+      </v-list-item>
+    </v-navigation-drawer>
+  </v-card>
 </template>
 
 <script>
