@@ -31,8 +31,8 @@
         ><v-icon light dark>mdi-record-circle</v-icon>Record
       </v-btn>
 
-      <v-btn color="error" @click="handleStop" v-else
-        ><v-icon light dark>mdi-record-circle</v-icon>Finish
+      <v-btn class="btn-record" color="error" @click="handleStop" v-else
+        ><v-icon light dark>mdi-stop</v-icon>Finish
       </v-btn>
 
       <v-btn @click="handleCancel" v-if="!isRecording">Cancel</v-btn>
@@ -83,7 +83,7 @@ export default {
   },
   methods: {
     loadStream: async function() {
-      var devices = await navigator.mediaDevices.enumerateDevices();
+      // var devices = await navigator.mediaDevices.enumerateDevices();
       // this.$refs.log.innerHTML = devices.filter(
       //   (device) => device.kind === "videoinput"
       // );
@@ -96,7 +96,6 @@ export default {
           facingMode: "user",
         },
       });
-      console.log(stream);
       recording.srcObject = stream;
     },
     handleStream: function() {
@@ -104,43 +103,42 @@ export default {
       let video = this.$refs.recording;
       let signCanvas = this.signCanvas;
 
-      if (this.$refs.recording.srcObject) {
-        setInterval(() => {
-          context.drawImage(video, 0, 0, this.width, this.height);
-          context.drawImage(signCanvas, 0, 0, this.width, this.height);
+      setInterval(() => {
+        context.drawImage(video, 0, 0, this.width, this.height);
+        context.drawImage(signCanvas, 0, 0, this.width, this.height);
 
-          context.font = "bold 20px Arial";
-          context.fillStyle = "rgba(0,0,0,0.5)";
+        context.font = "bold 20px Times New Roman";
+        context.fillStyle = "rgba(0,0,0,0.5)";
 
-          let currentTime = new Date()
-            .toISOString()
-            .replace("T", " ")
-            .replace("Z", "");
+        let currentTime = new Date()
+          .toISOString()
+          .replace("T", " ")
+          .replace("Z", "");
+        let remainingTime = this.remainingTime + "s";
+        let metrics = context.measureText("a");
 
-          let remainingTime = this.remainingTime + "s";
+        //*Draw Text Background
+        context.fillStyle = "rgba(0,0,0,0.5)";
 
-          let metrics = context.measureText("a");
+        context.fillRect(5, 5, metrics.width * currentTime.length - 20, 25);
+        context.fillRect(
+          this.width - metrics.width * remainingTime.length - 5,
+          5,
+          metrics.width * remainingTime.length,
+          25
+        );
 
-          context.fillStyle = "rgba(0,0,0,0.5)";
+        //* Draw Text
+        context.fillStyle = "yellow";
+        context.fillText(currentTime, 6, 25);
 
-          context.fillRect(5, 5, metrics.width * currentTime.length - 27, 25);
-          context.fillRect(
-            this.width - metrics.width * remainingTime.length - 5,
-            5,
-            metrics.width * remainingTime.length,
-            25
-          );
-          context.fillStyle = "yellow";
-
-          context.fillText(currentTime, 6, 25);
-          context.fillStyle = "red";
-          context.fillText(
-            remainingTime,
-            this.width - metrics.width * remainingTime.length - 5,
-            25
-          );
-        }, 1000 / 10);
-      }
+        context.fillStyle = "red";
+        context.fillText(
+          remainingTime,
+          this.width - metrics.width * remainingTime.length - 5,
+          25
+        );
+      }, 1000 / 10);
     },
     handleRecord: function(event) {
       if (this.isRecording) {
@@ -155,21 +153,28 @@ export default {
       this.pad.on();
 
       let stream = this.videoCanvas.captureStream(10);
-      let audioStream = this.$refs.recording.captureStream().getAudioTracks();
-      stream.addTrack(audioStream[0]);
+      let audioStream = this.$refs.recording
+        .captureStream()
+        .getAudioTracks()[0];
+
+      stream.addTrack(audioStream);
 
       this.recorder = new MediaRecorder(stream, {
         mimeType: "video\/webm",
       });
+
       this.recorder.start();
 
-      this.recorder.state == "recording" && console.log("start recording..."); //? log
+      //* log
+      this.recorder.state == "recording" && console.log("start recording...");
 
       this.recorder.ondataavailable = (e) => {
         e.data.size && this.chunks.push(e.data);
       };
 
-      this.recorder.onstop = (e) => {
+      this.recorder.onstop = () => {
+        // TODO: get data and send to server (the code below is just for tesing purpose)
+
         if (this.chunks.length) {
           var blob = new Blob(this.chunks, {
             type: "video\/webm",
@@ -177,15 +182,10 @@ export default {
           var vidURL = URL.createObjectURL(blob);
           this.chunks = [];
 
-          // this.$refs.preview.src = vidURL;
-          // this.$refs.preview.onend = () => {
-          //   URL.revokeObjectURL(vidURL);
-          // };
-
           var a = document.createElement("a");
           a.style = "display:none;";
           a.href = vidURL;
-          a.download = "something.webm";
+          a.download = "signature.webm";
           document.body.appendChild(a);
           a.click();
         }
@@ -195,7 +195,7 @@ export default {
         this.remainingTime--;
         if (this.remainingTime == 0 && this.recorder.state == "recording") {
           this.handleStop();
-          clearInterval(this.counter);
+          ////clearInterval(this.counter);
         }
       }, 1000);
     },
@@ -217,6 +217,7 @@ export default {
       let windowSize = { w: window.innerWidth, h: window.innerHeight };
 
       if (windowSize.w <= 1024 && windowSize.w < windowSize.h) {
+        //* log
         console.log("mobile");
 
         this.width = windowSize.w;
@@ -263,7 +264,15 @@ export default {
   justify-content: center;
   height: 75px;
   overflow: auto;
+  button {
+    margin: 0 9px;
+
+    i {
+      padding-right: 5px;
+    }
+  }
 }
+
 .video-canvas,
 .drawing-canvas {
   position: absolute;
@@ -274,13 +283,14 @@ export default {
 }
 
 .btn-record {
-  box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.7);
-  animation: pulse 1s infinite ease-in-out;
+  box-shadow: 0 0 0 0 rgba(239, 180, 180, 0.7);
+  animation: pulse 1.1s infinite ease-in-out;
 }
+// rgba(239, 83, 80, 0.7)
 
 @keyframes pulse {
   to {
-    box-shadow: 0 0 0 5px rgba(239, 83, 80, 0);
+    box-shadow: 0 0 0 7px rgba(239, 180, 180, 0);
   }
 }
 
@@ -292,7 +302,6 @@ export default {
   .drawing-canvas {
     left: 0;
     top: auto;
-    // width: 100%;
   }
 }
 </style>
