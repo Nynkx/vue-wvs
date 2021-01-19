@@ -54,8 +54,8 @@ export default {
       height: 1,
       recorder: null,
       chunks: [],
-      counter: null,
-      remainingTime: 10,
+      countdown: null,
+      remainingTime: 30,
       isRecording: false,
       pad: null,
     };
@@ -67,6 +67,9 @@ export default {
     signCanvas: function() {
       return this.$refs.signCanvas;
     },
+    recording: function() {
+      return this.$refs.recording;
+    },
   },
   created: function() {
     this.computeCanvasSize();
@@ -75,7 +78,7 @@ export default {
   mounted: function() {
     this.loadStream();
     this.pad = new SignaturePad(this.signCanvas, {
-      minWidth: 1.5,
+      minWidth: 2.5,
       maxWidth: 7,
       penColor: "black",
     });
@@ -88,7 +91,7 @@ export default {
       //   (device) => device.kind === "videoinput"
       // );
 
-      let recording = this.$refs.recording;
+      let recording = this.recording;
 
       let stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -100,7 +103,7 @@ export default {
     },
     handleStream: function() {
       let context = this.videoCanvas.getContext("2d");
-      let video = this.$refs.recording;
+      let video = this.recording;
       let signCanvas = this.signCanvas;
 
       setInterval(() => {
@@ -153,9 +156,7 @@ export default {
       this.pad.on();
 
       let stream = this.videoCanvas.captureStream(10);
-      let audioStream = this.$refs.recording
-        .captureStream()
-        .getAudioTracks()[0];
+      let audioStream = this.recording.captureStream().getAudioTracks()[0];
 
       stream.addTrack(audioStream);
 
@@ -191,18 +192,17 @@ export default {
         }
       };
 
-      this.counter = setInterval(() => {
+      this.countdown = setInterval(() => {
         this.remainingTime--;
         if (this.remainingTime == 0 && this.recorder.state == "recording") {
           this.handleStop();
-          ////clearInterval(this.counter);
         }
       }, 1000);
     },
     handleStop: function() {
       if (!this.isRecording) return;
 
-      clearInterval(this.counter);
+      clearInterval(this.countdown);
       this.isRecording = false;
       this.recorder.stop();
       this.remainingTime = 10;
