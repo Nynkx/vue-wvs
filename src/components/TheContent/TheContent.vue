@@ -1,20 +1,27 @@
 <template>
   <div>
+    <div>
+      <pdf-viewer></pdf-viewer>
+    </div>
+    <div>
+      <v-btn @click="toggleShow">open recorder</v-btn>
+    </div>
     <signature-recorder
       v-if="this.show"
       :onClose="this.toggleShow"
     ></signature-recorder>
-    <v-btn @click="toggleShow">open recorder</v-btn>
   </div>
 </template>
 
 <script>
-import SignatureRecorder from "./signature-recorder.vue";
+import SignatureRecorder from "./SignatureRecorder.vue";
+import PDFViewer from "./PDFViewer.vue";
 
 export default {
   name: "TheContent",
   components: {
-    SignatureRecorder,
+    "signature-recorder": SignatureRecorder,
+    "pdf-viewer": PDFViewer,
   },
   data: function() {
     return {
