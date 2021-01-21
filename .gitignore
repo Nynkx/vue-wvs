@@ -3,6 +3,11 @@ node_modules
 server
 /dist
 
+#foxit lib
+src/foxit-lib/*
+!src/foxit-lib/assets
+!src/foxit-lib/license-key.js
+
 
 # local env files
 .env.local
