@@ -27,6 +27,7 @@ export default {
   position: relative;
   top: 0;
   left: 0;
+  z-index: 10000;
   width: 300px;
   height: 100%;
   margin-left: -300px;

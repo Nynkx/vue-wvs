@@ -8,6 +8,11 @@ import "../../foxit-lib/UIExtension.css";
 
 export default {
   name: "pdf-viewer",
+  data: function() {
+    return {
+      pdfui: null,
+    };
+  },
   mounted: function() {
     const libPath = "/foxit-lib/";
     this.pdfui = new UIExtension.PDFUI({
@@ -35,8 +40,17 @@ export default {
           ? []
           : `${libPath}uix-addons/text-object`
       ),
+      template: `
+      <webpdf>
+        <toolbar name="toolbar">
+          <open-file-dropdown></open-file-dropdown>\
+        </toolbar>
+        <viewer></viewer>
+      </webpdf>
+      `,
     });
   },
+  methods: {},
 };
 </script>
 <style>

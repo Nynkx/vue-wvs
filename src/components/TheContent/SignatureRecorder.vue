@@ -84,6 +84,9 @@ export default {
     });
     //this.pad.off();
   },
+  destroyed: function() {
+    console.log("destroyed!");
+  },
   methods: {
     loadStream: async function() {
       // var devices = await navigator.mediaDevices.enumerateDevices();
@@ -148,9 +151,9 @@ export default {
         return;
       }
 
-      alert(
-        `Recording will be finished automatically after ${this.remainingTime}s`
-      );
+      // alert(
+      //   `Recording will be finished automatically after ${this.remainingTime}s`
+      // );
 
       this.isRecording = true;
       this.pad.on();
@@ -175,6 +178,7 @@ export default {
 
       this.recorder.onstop = () => {
         // TODO: get data and send to server (the code below is just for tesing purpose)
+        console.log(this.chunks);
 
         if (this.chunks.length) {
           var blob = new Blob(this.chunks, {
@@ -209,6 +213,7 @@ export default {
     },
     handleCancel: function() {
       this.onClose();
+      this.recording.srcObject = null;
     },
     handleClear: function() {
       this.pad.clear();
