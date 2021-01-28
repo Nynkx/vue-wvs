@@ -1,9 +1,9 @@
 <template>
-  <div class="wvs-app">
-    <TheHeader />
+  <div class="wvs-app border">
+    <TheHeader class="wvs-header" />
     <div class="wvs-wrapper border">
       <TheSidebar />
-      <div class="border wvs-container">
+      <div class="wvs-container border">
         <TheContent />
       </div>
     </div>

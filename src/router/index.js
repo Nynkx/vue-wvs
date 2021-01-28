@@ -7,12 +7,26 @@ Vue.use(VueRouter);
 const About = () => import("@/views/About.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
+const Documents = () => import("@/components/Documents/Documents.vue");
+const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");
+
 const routes = [
   {
     path: "/",
-    name: "Home",
-    alias: "/home",
     component: Home,
+    children: [
+      {
+        path: "documents",
+        name: "Documents",
+        component: Documents,
+      },
+      {
+        path: "",
+        name: "Dashboard",
+        alias: ["/home", "/dashboard"],
+        component: Dashboard,
+      },
+    ],
   },
   {
     path: "/about",
@@ -34,5 +48,7 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
 });
+
+//router.beforeEach();
 
 export default router;

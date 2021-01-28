@@ -1,17 +1,16 @@
 .wvs-app {
   height: 100%;
   display: flex;
-  flex: 1 1;
   flex-direction: column;
 }
 
 .wvs-wrapper {
+  flex: 1;
   display: flex;
   position: relative;
-  height: 100%;
-}
-.wvs-container {
-  flex: 1;
-  height: 100%;
   overflow: auto;
+}
+
+.wvs-container {
+  flex: 1 1 auto;
 }

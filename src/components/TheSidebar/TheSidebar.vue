@@ -1,11 +1,22 @@
 <template>
-  <v-card>
-    <v-navigation-drawer class="sidebar" :class="{ active: show }">
-      <v-list-item>
-        Dashboard
-      </v-list-item>
-    </v-navigation-drawer>
-  </v-card>
+  <div class="sidebar" :class="{ active: show }">
+    <span class="wvs-sidebar--icon" @click="test()">
+      <v-icon :class="{ 'a-a': show }">mdi-chevron-right</v-icon>
+    </span>
+    <v-card class="wvs-sidebar--menu">
+      <v-list dense>
+        <v-list-item
+          v-for="item in navItems"
+          :key="item.name"
+          link
+          :to="item.to"
+          @click="hideSidebar"
+        >
+          {{ item.name }}
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </div>
 </template>
 
 <script>
@@ -16,23 +27,72 @@ export default {
       return this.$store.state.sidebar.show;
     },
   },
+  data: function() {
+    return {
+      navItems: [
+        {
+          to: "/",
+          name: "Home",
+        },
+        {
+          to: "/documents",
+          name: "Documents",
+        },
+      ],
+    };
+  },
   mounted: () => {
     console.log("Sidebar mounted!");
+  },
+  methods: {
+    hideSidebar: function() {
+      this.$store.dispatch("sidebar/hideSidebar");
+    },
+    test: function() {
+      this.$store.dispatch("sidebar/toggleSidebar");
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
 .sidebar {
-  position: relative;
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 10000;
   width: 300px;
-  height: 100%;
   margin-left: -300px;
-  overflow-x: hidden;
+  z-index: 999997;
   transition: margin-left 500ms ease;
+
+  .wvs-sidebar--icon {
+    z-index: 999999;
+  }
+
+  .wvs-sidebar--icon {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    position: absolute;
+    right: -40px;
+    top: 4px;
+    background: white;
+    z-index: 999998;
+    //border: 1px black solid;
+    border-radius: 0 4px 4px 0;
+
+    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
+      0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+
+    .a-a {
+      transform: rotate(-180deg);
+    }
+
+    i {
+      width: 100%;
+      height: 100%;
+    }
+  }
 }
 .active {
   margin-left: 0;
