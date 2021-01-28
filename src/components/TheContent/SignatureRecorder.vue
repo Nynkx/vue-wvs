@@ -206,14 +206,21 @@ export default {
     handleStop: function() {
       if (!this.isRecording) return;
 
+      this.turnOffCamera();
       clearInterval(this.countdown);
       this.isRecording = false;
       this.recorder.stop();
       this.remainingTime = 10;
     },
+    turnOffCamera: function() {
+      const stream = this.recording.srcObject;
+
+      let tracks = stream.getTracks();
+      tracks.map(track => track.stop());
+    },
     handleCancel: function() {
+      this.turnOffCamera();
       this.onClose();
-      this.recording.srcObject = null;
     },
     handleClear: function() {
       this.pad.clear();
