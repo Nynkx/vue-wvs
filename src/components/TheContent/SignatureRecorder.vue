@@ -18,6 +18,7 @@
     ></canvas>
     <canvas
       ref="signCanvas"
+      v-show="isRecording"
       :width="width"
       :height="height"
       class="border drawing-canvas"
@@ -164,7 +165,7 @@ export default {
       stream.addTrack(audioStream);
 
       this.recorder = new MediaRecorder(stream, {
-        mimeType: "video\/webm",
+        mimeType: "video/webm",
       });
 
       this.recorder.start();
