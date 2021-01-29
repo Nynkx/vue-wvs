@@ -1,10 +1,10 @@
 <template>
   <div class="documents-wrapper">
     <div class="pdf-viewer">
-      <pdf-viewer></pdf-viewer>
+      <pdf-viewer v-on:show-recorder="toggleShow"></pdf-viewer>
     </div>
     <div>
-      <v-btn @click="toggleShow">open recorder</v-btn>
+      <!-- <v-btn @click="toggleShow">open recorder</v-btn> -->
       <signature-recorder
         v-if="this.show"
         :onClose="this.toggleShow"
@@ -38,14 +38,14 @@ export default {
 
 <style lang="scss" scoped>
 .documents-wrapper {
-  border: 2px red solid;
+  // border: 2px red solid;
   height: 100%;
   display: flex;
+  overflow: auto;
 
   .pdf-viewer {
-    border: 5px green solid;
-    height: 100%;
     flex: 1;
+    // border: 5px green solid;
   }
 }
 </style>
