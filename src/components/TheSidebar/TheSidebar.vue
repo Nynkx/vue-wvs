@@ -1,7 +1,7 @@
 <template>
-  <div class="sidebar" :class="{ active: show }">
-    <span class="wvs-sidebar--icon" @click="test()">
-      <v-icon :class="{ 'a-a': show }">mdi-chevron-right</v-icon>
+  <div class="sidebar" :class="{ active: show }" @mouseleave="hideSidebar">
+    <span class="wvs-sidebar--icon" @click="test" @mouseenter="test">
+      <v-icon :class="{ 'icon-hide': show }">mdi-chevron-right</v-icon>
     </span>
     <v-card class="wvs-sidebar--menu">
       <v-list dense>
@@ -43,6 +43,11 @@ export default {
           name: "Documents",
           icon: "mdi-folder",
         },
+        {
+          to: "/logout",
+          name: "Logout",
+          icon: "mdi-logout",
+        },
       ],
     };
   },
@@ -62,16 +67,23 @@ export default {
 
 <style lang="scss" scoped>
 .sidebar {
+  display: flex;
   position: absolute;
   top: 0;
   left: 0;
   width: 300px;
+  max-height: 90%;
   margin-left: -300px;
   z-index: 999997;
   transition: margin-left 500ms ease;
 
   .wvs-sidebar--menu {
     z-index: 999999;
+    flex: 1;
+    overflow-y: auto;
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     a:hover {
       text-decoration: none;
@@ -81,7 +93,7 @@ export default {
   .wvs-sidebar--icon {
     width: 40px;
     height: 40px;
-    cursor: pointer;
+    //cursor: pointer;
     position: absolute;
     right: -40px;
     top: 4px;
@@ -93,7 +105,7 @@ export default {
     box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%),
       0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
 
-    .a-a {
+    .icon-hide {
       transform: rotate(-180deg);
     }
 
@@ -102,6 +114,10 @@ export default {
       height: 100%;
     }
   }
+}
+.wvs-sidebar--icon__active {
+  opacity: 1 !important;
+  background: red;
 }
 .active {
   margin-left: 0;

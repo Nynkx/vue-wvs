@@ -1,8 +1,7 @@
 <template>
   <div class="documents-wrapper">
     <div class="pdf-viewer">
-      <v-btn @click="toggleShow">open recorder</v-btn>
-      <v-btn @click="logout">logout</v-btn>
+      <!-- <v-btn @click="toggleShow">open recorder</v-btn> -->
       <pdf-viewer></pdf-viewer>
     </div>
     <div style="display:none;">
@@ -32,9 +31,6 @@ export default {
   methods: {
     toggleShow: function() {
       this.show = !this.show;
-    },
-    logout: () => {
-      localStorage.clear();
     },
   },
 };

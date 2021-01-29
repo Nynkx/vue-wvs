@@ -5,6 +5,7 @@ import Home from "../views/Home.vue";
 Vue.use(VueRouter);
 
 const Login = () => import("@/views/Login.vue");
+const Logout = () => import("@/views/Logout.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
@@ -32,6 +33,11 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
+  },
+  {
+    path: "/logout",
+    name: "Logout",
+    component: Logout,
   },
   {
     path: "/*",
