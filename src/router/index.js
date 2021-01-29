@@ -4,7 +4,7 @@ import Home from "../views/Home.vue";
 
 Vue.use(VueRouter);
 
-const About = () => import("@/views/About.vue");
+const Login = () => import("@/views/Login.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
@@ -29,12 +29,9 @@ const routes = [
     ],
   },
   {
-    path: "/about",
-    name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: About,
+    path: "/login",
+    name: "Login",
+    component: Login,
   },
   {
     path: "/*",
@@ -49,6 +46,20 @@ const router = new VueRouter({
   routes,
 });
 
-//router.beforeEach();
+router.beforeEach((to, from, next) => {
+  const publicRoutes = ["/login", "/register"];
+  const authRequired = !publicRoutes.includes(to.path);
+
+  const isAuthed = localStorage.getItem("token");
+
+  if (authRequired && !isAuthed) {
+    return next("/login");
+  }
+
+  if (!authRequired && isAuthed) {
+    return next("/");
+  }
+  next();
+});
 
 export default router;

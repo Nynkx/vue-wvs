@@ -12,7 +12,10 @@
           :to="item.to"
           @click="hideSidebar"
         >
-          {{ item.name }}
+          <v-list-item-icon>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>{{ item.name }}</v-list-item-content>
         </v-list-item>
       </v-list>
     </v-card>
@@ -33,10 +36,12 @@ export default {
         {
           to: "/",
           name: "Home",
+          icon: "mdi-home",
         },
         {
           to: "/documents",
           name: "Documents",
+          icon: "mdi-folder",
         },
       ],
     };
@@ -65,8 +70,12 @@ export default {
   z-index: 999997;
   transition: margin-left 500ms ease;
 
-  .wvs-sidebar--icon {
+  .wvs-sidebar--menu {
     z-index: 999999;
+
+    a:hover {
+      text-decoration: none;
+    }
   }
 
   .wvs-sidebar--icon {

@@ -2,8 +2,8 @@
   <header>
     <v-app-bar>
       <!-- <v-btn @click="handleClick()">button</v-btn> -->
-      <v-app-bar-nav-icon @click="handleClick()"></v-app-bar-nav-icon>
-      <v-toolbar-title>Header</v-toolbar-title>
+      <!-- <v-app-bar-nav-icon @click="handleClick()"></v-app-bar-nav-icon> -->
+      <v-toolbar-title>Vue-WVS2</v-toolbar-title>
       <v-spacer></v-spacer>
 
       <v-text-field

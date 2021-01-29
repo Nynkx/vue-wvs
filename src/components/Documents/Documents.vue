@@ -1,14 +1,15 @@
 <template>
   <div class="documents-wrapper">
     <div class="pdf-viewer">
+      <v-btn @click="toggleShow">open recorder</v-btn>
+      <v-btn @click="logout">logout</v-btn>
       <pdf-viewer></pdf-viewer>
     </div>
     <div style="display:none;">
-      <v-btn @click="toggleShow">open recorder</v-btn>
-      <signature-recorder
+      <!-- <signature-recorder
         v-if="this.show"
         :onClose="this.toggleShow"
-      ></signature-recorder>
+      ></signature-recorder> -->
     </div>
   </div>
 </template>
@@ -31,6 +32,9 @@ export default {
   methods: {
     toggleShow: function() {
       this.show = !this.show;
+    },
+    logout: () => {
+      localStorage.clear();
     },
   },
 };
