@@ -1,15 +1,6 @@
 <template>
   <div class="documents-wrapper">
-    <div class="pdf-viewer">
-      <!-- <v-btn @click="toggleShow">open recorder</v-btn> -->
-      <pdf-viewer></pdf-viewer>
-    </div>
-    <div style="display:none;">
-      <!-- <signature-recorder
-        v-if="this.show"
-        :onClose="this.toggleShow"
-      ></signature-recorder> -->
-    </div>
+    <router-view :docId="this.$data" docControls=""></router-view>
   </div>
 </template>
 
@@ -28,6 +19,12 @@ export default {
       show: false,
     };
   },
+  mounted: function() {
+    // documents.get().then((res) => {
+    //   this.documents = res.data.list;
+    //   console.log(this.documents);
+    // });
+  },
   methods: {
     toggleShow: function() {
       this.show = !this.show;
@@ -40,8 +37,10 @@ export default {
 .documents-wrapper {
   //border: 2px red solid;
   height: 100%;
-  display: flex;
+  //display: flex;
   flex-wrap: wrap;
+  overflow: auto;
+  flex: 1;
 
   .pdf-viewer {
     //border: 5px green solid;

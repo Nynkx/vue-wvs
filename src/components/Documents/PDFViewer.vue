@@ -7,13 +7,18 @@ import * as UIExtension from "../../foxit-lib/UIExtension.full.js";
 import "../../foxit-lib/UIExtension.css";
 
 export default {
-  name: "pdf-viewer",
+  name: "PDFViewer",
   data: function() {
     return {
+      docId: "",
+      //docControls: {},
       pdfui: null,
     };
   },
   mounted: function() {
+    this.docId = this.$route.params.id;
+
+    console.log(this.docId);
     const libPath = "/foxit-lib/";
     this.pdfui = new UIExtension.PDFUI({
       viewerOptions: {

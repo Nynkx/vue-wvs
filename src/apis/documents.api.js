@@ -1,11 +1,15 @@
 import axios from "axios";
 
-const auth = axios.create({ baseURL: "https://wvs.foxit.co.jp/api/auth" });
+const documents = axios.create({
+  baseURL: "https://wvs.foxit.co.jp/api/documents",
+});
 
-auth.interceptors.request.use(
+documents.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem("token");
+
     config.headers = {
-      "Content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+      Authorization: `Bearer ${token}`,
     };
 
     return config;
@@ -15,14 +19,13 @@ auth.interceptors.request.use(
   }
 );
 
-auth.interceptors.response.use(
+documents.interceptors.response.use(
   (response) => {
     return response;
   },
   (err) => {
     const { status, data } = err.response;
 
-    alert("Session Expired, Please Login Again!");
     localStorage.clear();
     console.log(data);
     //window.location.replace("/login");
@@ -31,4 +34,4 @@ auth.interceptors.response.use(
   }
 );
 
-export default auth;
+export default documents;

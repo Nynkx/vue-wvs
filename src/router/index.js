@@ -9,6 +9,8 @@ const Logout = () => import("@/views/Logout.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
+const DocumentsList = () => import("@/components/Documents/DocumentsList");
+const PDFViewer = () => import("@/components/Documents/PDFViewer.vue");
 const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");
 
 const routes = [
@@ -18,8 +20,20 @@ const routes = [
     children: [
       {
         path: "documents",
-        name: "Documents",
+        //name: "Documents",
         component: Documents,
+        children: [
+          {
+            path: "sign/:id",
+            name: "Document",
+            component: PDFViewer,
+          },
+          {
+            path: "",
+            name: "Documents",
+            component: DocumentsList,
+          },
+        ],
       },
       {
         path: "",
