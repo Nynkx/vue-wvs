@@ -7,10 +7,14 @@ const documents = axios.create({
 documents.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+    console.log(config.headers);
 
-    config.headers = {
-      Authorization: `Bearer ${token}`,
-    };
+    config.headers = Object.assign(
+      {
+        Authorization: `Bearer ${token}`,
+      },
+      config.headers
+    );
 
     return config;
   },
@@ -26,9 +30,19 @@ documents.interceptors.response.use(
   (err) => {
     const { status, data } = err.response;
 
-    localStorage.clear();
-    console.log(data);
-    //window.location.replace("/login");
+    switch (status) {
+      case 401:
+        localStorage.clear();
+        console.log(data);
+        window.location.replace("/login");
+        break;
+      case 404:
+        console.log(status);
+        break;
+      default:
+        console.log(status);
+        break;
+    }
 
     return Promise.reject(err);
   }

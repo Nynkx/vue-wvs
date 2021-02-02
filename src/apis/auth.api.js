@@ -25,7 +25,7 @@ auth.interceptors.response.use(
     alert("Session Expired, Please Login Again!");
     localStorage.clear();
     console.log(data);
-    //window.location.replace("/login");
+    window.location.replace("/login");
 
     return Promise.reject(err);
   }

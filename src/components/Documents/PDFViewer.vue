@@ -5,13 +5,14 @@
 <script>
 import * as UIExtension from "../../foxit-lib/UIExtension.full.js";
 import "../../foxit-lib/UIExtension.css";
+import documents from "@/apis/documents.api";
 
 export default {
   name: "PDFViewer",
+  computed: {},
   data: function() {
     return {
       docId: "",
-      //docControls: {},
       pdfui: null,
     };
   },
@@ -19,6 +20,7 @@ export default {
     this.docId = this.$route.params.id;
 
     console.log(this.docId);
+
     const libPath = "/foxit-lib/";
     this.pdfui = new UIExtension.PDFUI({
       viewerOptions: {
@@ -53,6 +55,37 @@ export default {
         <viewer></viewer>
       </webpdf>
       `,
+    });
+
+    documents.get(`/${this.docId}`).then((res) => {
+      var doc = res.data.document;
+      documents
+        .get(`/doc/${doc.path}?id=${doc._id}&doc=${doc.path}`, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            responseType: "arraybuffer",
+            dataType: "blob",
+            Accept: "application/pdf",
+          },
+        })
+        .then((res) => {
+          var blob = new Blob([res.data], { type: "application/pdf" });
+          console.log(blob);
+          var pdfurl = URL.createObjectURL(blob);
+
+          //console.log(res.data);
+
+          var a = document.createElement("a");
+          a.style = "display:none;";
+          a.href = pdfurl;
+          a.download = doc.path;
+          document.body.appendChild(a);
+          a.click();
+
+          this.pdfui.getPDFViewer((viewer) => {
+            viewer.openPDFByFile();
+          });
+        });
     });
   },
   methods: {},
