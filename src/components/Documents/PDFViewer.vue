@@ -59,6 +59,7 @@ export default {
 
     documents.get(`/${this.docId}`).then((res) => {
       var doc = res.data.document;
+      const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
       console.log(res.data);
       documents
         .get(`/doc/${doc.path}`, {
@@ -87,20 +88,71 @@ export default {
           this.pdfui.getPDFViewer().then((viewer) => {
             viewer
               .openPDFByFile(blob)
-              .then((pdfDoc) => {
-                console.log("a");
-              })
+              .then((pdfDoc) => {})
               .catch((err) => console.log(err));
+
+            viewer.eventEmitter.on(ViewerEvents.renderFileSuccess, (pdfDoc) => {
+              console.log();
+
+              var page = viewer.getPDFPageRender(0);
+              var pageDOM = page.$ui[0];
+
+              var docControls = doc.controls;
+
+              for (var control of docControls) {
+                var controlRect = this.computeRectByScale(
+                  control.deviceRect,
+                  control.scale,
+                  page.getScale()
+                );
+
+                var ctrl = document.createElement("div");
+                ctrl.id = control.id;
+                ctrl.style.width = controlRect.width + "px";
+                ctrl.style.height = controlRect.height + "px";
+                ctrl.classList.add("control-item");
+                ctrl.innerHTML = "asd";
+                ctrl.style.top = controlRect.top + "px";
+                ctrl.style.left = controlRect.left + "px";
+                // ctrl.style.right = controlRect.right + "px";
+                // ctrl.style.bottom = controlRect.bottom + "px";
+                pageDOM.appendChild(ctrl);
+              }
+            });
+
+            viewer.eventEmitter.on(
+              ViewerEvents.renderPageSuccess,
+              (pageRender) => {}
+            );
           });
         });
     });
   },
-  methods: {},
+  methods: {
+    computeRectByScale: function(rect, oldScale, newScale) {
+      var newRect = {
+        top: (rect.top / oldScale) * newScale,
+        left: (rect.left / oldScale) * newScale,
+        bottom: (rect.bottom / oldScale) * newScale,
+        right: (rect.right / oldScale) * newScale,
+        width: (rect.width / oldScale) * newScale,
+        height: (rect.height / oldScale) * newScale,
+      };
+
+      return newRect;
+    },
+  },
 };
 </script>
 <style>
 .viewer-container,
 .viewer-container > .fv__ui-webpdf {
   height: 100%;
+}
+
+.control-item {
+  background: orange;
+  position: absolute;
+  z-index: 50;
 }
 </style>
