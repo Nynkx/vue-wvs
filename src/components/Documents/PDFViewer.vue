@@ -59,31 +59,38 @@ export default {
 
     documents.get(`/${this.docId}`).then((res) => {
       var doc = res.data.document;
+      console.log(res.data);
       documents
-        .get(`/doc/${doc.path}?id=${doc._id}&doc=${doc.path}`, {
+        .get(`/doc/${doc.path}`, {
+          params: {
+            id: doc._id,
+            doc: doc.path,
+          },
+          responseType: "arraybuffer",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            responseType: "arraybuffer",
-            dataType: "blob",
             Accept: "application/pdf",
           },
         })
         .then((res) => {
           var blob = new Blob([res.data], { type: "application/pdf" });
-          console.log(blob);
-          var pdfurl = URL.createObjectURL(blob);
 
           //console.log(res.data);
 
-          var a = document.createElement("a");
-          a.style = "display:none;";
-          a.href = pdfurl;
-          a.download = doc.path;
-          document.body.appendChild(a);
-          a.click();
+          // var a = document.createElement("a");
+          // a.style = "display:none;";
+          // a.href = pdfurl;
+          // a.download = doc.path;
+          // document.body.appendChild(a);
+          // a.click();
 
-          this.pdfui.getPDFViewer((viewer) => {
-            viewer.openPDFByFile();
+          this.pdfui.getPDFViewer().then((viewer) => {
+            viewer
+              .openPDFByFile(blob)
+              .then((pdfDoc) => {
+                console.log("a");
+              })
+              .catch((err) => console.log(err));
           });
         });
     });

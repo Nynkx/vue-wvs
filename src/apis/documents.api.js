@@ -7,7 +7,6 @@ const documents = axios.create({
 documents.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    console.log(config.headers);
 
     config.headers = Object.assign(
       {
