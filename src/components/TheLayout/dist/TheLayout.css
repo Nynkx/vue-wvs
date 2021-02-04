@@ -5,12 +5,15 @@
 }
 
 .wvs-wrapper {
+  flex: 1;
   display: flex;
   flex: 1;
   position: relative;
   overflow: auto;
+  height: 100%;
+  padding: 0 40px 0 40px;
 }
 
 .wvs-container {
-  flex: 1;
+  flex: 1 1 auto;
 }

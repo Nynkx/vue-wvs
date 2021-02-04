@@ -1,10 +1,12 @@
 <template>
   <div class="wvs-app">
-    <TheHeader />
-    <div class="wvs-wrapper border">
+    <TheHeader class="wvs-header" />
+    <div class="wvs-wrapper">
       <TheSidebar />
-      <div class="border wvs-container">
-        <TheContent />
+      <div class="wvs-container">
+        <v-card style="height: 100%">
+          <TheContent />
+        </v-card>
       </div>
     </div>
   </div>
