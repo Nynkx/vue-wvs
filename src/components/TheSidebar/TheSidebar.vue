@@ -74,11 +74,11 @@ export default {
   width: 300px;
   max-height: 90%;
   margin-left: -300px;
-  z-index: 999997;
+  z-index: 97;
   transition: margin-left 500ms ease;
 
   .wvs-sidebar--menu {
-    z-index: 999999;
+    z-index: 99;
     flex: 1;
     overflow-y: auto;
     &::-webkit-scrollbar {
@@ -98,7 +98,7 @@ export default {
     right: -40px;
     top: 4px;
     background: white;
-    z-index: 999998;
+    z-index: 98;
     //border: 1px black solid;
     border-radius: 0 4px 4px 0;
 

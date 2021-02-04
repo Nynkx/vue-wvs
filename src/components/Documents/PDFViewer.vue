@@ -1,5 +1,11 @@
 <template>
-  <div ref="viewer" class="viewer-container"></div>
+  <div style="height: 100%;">
+    <div ref="viewer" class="viewer-container"></div>
+    <signature-recorder
+      v-if="recorderShow"
+      @close="toggleRecorder"
+    ></signature-recorder>
+  </div>
 </template>
 
 <script>
@@ -7,13 +13,19 @@ import * as UIExtension from "../../foxit-lib/UIExtension.full.js";
 import "../../foxit-lib/UIExtension.css";
 import documents from "@/apis/documents.api";
 
+import SignatureRecorder from "./SignatureRecorder.vue";
+
 export default {
   name: "PDFViewer",
   computed: {},
+  components: {
+    "signature-recorder": SignatureRecorder,
+  },
   data: function() {
     return {
       docId: "",
       pdfui: null,
+      recorderShow: false,
     };
   },
   mounted: function() {
@@ -59,8 +71,11 @@ export default {
 
     documents.get(`/${this.docId}`).then((res) => {
       var doc = res.data.document;
+
       const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
+
       console.log(res.data);
+
       documents
         .get(`/doc/${doc.path}`, {
           params: {
@@ -88,11 +103,14 @@ export default {
           this.pdfui.getPDFViewer().then((viewer) => {
             viewer
               .openPDFByFile(blob)
-              .then((pdfDoc) => {})
+              .then((pdfDoc) => {
+                pdfDoc.loadPDFForm();
+                console.log(pdfDoc.getPDFForm());
+              })
               .catch((err) => console.log(err));
 
             viewer.eventEmitter.on(ViewerEvents.renderFileSuccess, (pdfDoc) => {
-              console.log();
+              console.log(doc.controls);
 
               var page = viewer.getPDFPageRender(0);
               var pageDOM = page.$ui[0];
@@ -111,11 +129,19 @@ export default {
                 ctrl.style.width = controlRect.width + "px";
                 ctrl.style.height = controlRect.height + "px";
                 ctrl.classList.add("control-item");
-                ctrl.innerHTML = "asd";
+
                 ctrl.style.top = controlRect.top + "px";
                 ctrl.style.left = controlRect.left + "px";
-                // ctrl.style.right = controlRect.right + "px";
-                // ctrl.style.bottom = controlRect.bottom + "px";
+                if (
+                  control.type === "svs" &&
+                  control.signer === doc.nextSigner
+                ) {
+                  ctrl.style.cursor = "pointer";
+                  ctrl.addEventListener("click", (e) => {
+                    this.toggleRecorder();
+                  });
+                }
+
                 pageDOM.appendChild(ctrl);
               }
             });
@@ -140,6 +166,9 @@ export default {
       };
 
       return newRect;
+    },
+    toggleRecorder: function() {
+      this.recorderShow = !this.recorderShow;
     },
   },
 };

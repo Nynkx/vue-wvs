@@ -22,10 +22,16 @@ auth.interceptors.response.use(
   (err) => {
     const { status, data } = err.response;
 
-    alert("Session Expired, Please Login Again!");
-    localStorage.clear();
-    console.log(data);
-    window.location.replace("/login");
+    switch (status) {
+      case 404:
+        alert("Incorrect username or password!");
+        break;
+      default:
+        alert("Session Expired, Please Login Again!");
+        localStorage.clear();
+        console.log(data);
+        window.location.replace("/login");
+    }
 
     return Promise.reject(err);
   }

@@ -1,19 +1,12 @@
 <template>
   <div class="documents-wrapper">
-    <router-view :docId="this.$data" docControls=""></router-view>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import SignatureRecorder from "./SignatureRecorder.vue";
-import PDFViewer from "./PDFViewer.vue";
-
 export default {
   name: "TheContent",
-  components: {
-    "signature-recorder": SignatureRecorder,
-    "pdf-viewer": PDFViewer,
-  },
   data: function() {
     return {
       show: false,

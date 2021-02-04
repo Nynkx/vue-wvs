@@ -26,16 +26,21 @@ const getters = {
 };
 
 const actions = {
-  loginWithCredentials: ({ commit }, { username, password }) => {
+  loginWithCredentials: async ({ commit }, { username, password }) => {
     var creds = new URLSearchParams();
     creds.append("username", username);
     creds.append("password", password);
 
-    auth.post("/login", creds).then((response) => {
+    try {
+      var response = await auth.post("/login", creds);
+
       localStorage.setItem("token", response.data.token);
       commit("USER_lOGIN_SUCCESS", response.data.token);
       window.location = "/";
-    });
+    } catch (err) {
+      console.log("error here?");
+      console.log(err);
+    }
   },
 };
 

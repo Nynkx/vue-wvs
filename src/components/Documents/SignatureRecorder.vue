@@ -23,20 +23,59 @@
       class="border drawing-canvas"
     ></canvas>
     <div class="wvs-recorder-buttons-group">
-      <v-btn
-        color="error"
-        @click="handleRecord($event)"
-        class="btn-record"
-        v-if="!isRecording"
-        ><v-icon light dark>mdi-record-circle</v-icon>Record
-      </v-btn>
+      <div class="btn-group-left"></div>
 
-      <v-btn class="btn-record" color="error" @click="handleStop" v-else
-        ><v-icon light dark>mdi-stop</v-icon>Finish
-      </v-btn>
+      <div class="center">
+        <v-tooltip top v-if="!isRecording">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              fab
+              large
+              @click="handleRecord($event)"
+              class="btn-record"
+              v-bind="attrs"
+              v-on="on"
+              ><v-icon light color="error">mdi-checkbox-blank-circle</v-icon>
+            </v-btn>
+          </template>
+          <span>Start Recording</span>
+        </v-tooltip>
 
-      <v-btn @click="handleCancel" v-if="!isRecording">Cancel</v-btn>
-      <v-btn @click="handleClear" v-else>Clear</v-btn>
+        <v-tooltip top v-else>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              fab
+              class="btn-record"
+              color="error"
+              @click="handleStop"
+              v-bind="attrs"
+              v-on="on"
+              ><v-icon light dark>mdi-square</v-icon>
+            </v-btn>
+          </template>
+          <span>Finish Recording</span>
+        </v-tooltip>
+      </div>
+
+      <div class="btn-group-right">
+        <v-tooltip top v-if="!isRecording">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn fab small @click="handleCancel" v-bind="attrs" v-on="on">
+              <v-icon light dark>mdi-close</v-icon>
+            </v-btn>
+          </template>
+          <span>Cancel</span>
+        </v-tooltip>
+
+        <v-tooltip top v-else>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn fab small @click="handleClear" v-bind="attrs" v-on="on">
+              <v-icon light dark>mdi-eraser</v-icon>
+            </v-btn>
+          </template>
+          <span>Cancel</span>
+        </v-tooltip>
+      </div>
     </div>
     <!-- <video controls ref="preview"></video> -->
   </div>
@@ -47,12 +86,12 @@ import SignaturePad from "signature_pad";
 
 export default {
   name: "signature-recorder",
-  props: ["onClose"],
   data: function() {
     return {
       width: 1,
       height: 1,
       recorder: null,
+      canvasInterval: "",
       chunks: [],
       countdown: null,
       remainingTime: 30,
@@ -78,14 +117,16 @@ export default {
   mounted: function() {
     this.loadStream();
     this.pad = new SignaturePad(this.signCanvas, {
-      minWidth: 2.5,
+      minWidth: 1.5,
       maxWidth: 7,
       penColor: "black",
     });
-    //this.pad.off();
+    this.pad.off();
   },
-  destroyed: function() {
-    console.log("destroyed!");
+  beforeDestroy: function() {
+    this.recording.srcObject.getTracks().forEach((track) => track.stop());
+    clearInterval(this.canvasInterval);
+    console.log(this.recording.srcObject.getTracks());
   },
   methods: {
     loadStream: async function() {
@@ -109,7 +150,7 @@ export default {
       let video = this.recording;
       let signCanvas = this.signCanvas;
 
-      setInterval(() => {
+      this.canvasInterval = setInterval(() => {
         context.drawImage(video, 0, 0, this.width, this.height);
         context.drawImage(signCanvas, 0, 0, this.width, this.height);
 
@@ -151,9 +192,9 @@ export default {
         return;
       }
 
-      // alert(
-      //   `Recording will be finished automatically after ${this.remainingTime}s`
-      // );
+      alert(
+        `Recording will be finished automatically after ${this.remainingTime}s`
+      );
 
       this.isRecording = true;
       this.pad.on();
@@ -187,12 +228,17 @@ export default {
           var vidURL = URL.createObjectURL(blob);
           this.chunks = [];
 
+          var image = this.pad.toDataURL("image/png");
+          console.log(this.chunks);
+
           var a = document.createElement("a");
           a.style = "display:none;";
           a.href = vidURL;
           a.download = "signature.webm";
           document.body.appendChild(a);
-          a.click();
+          //a.click();
+
+          this.$emit("close");
         }
       };
 
@@ -212,8 +258,7 @@ export default {
       this.remainingTime = 10;
     },
     handleCancel: function() {
-      this.onClose();
-      this.recording.srcObject = null;
+      this.$emit("close");
     },
     handleClear: function() {
       this.pad.clear();
@@ -271,10 +316,6 @@ export default {
   overflow: auto;
   button {
     margin: 0 9px;
-
-    i {
-      padding-right: 5px;
-    }
   }
 }
 
@@ -292,6 +333,13 @@ export default {
   animation: pulse 1.1s infinite ease-in-out;
 }
 // rgba(239, 83, 80, 0.7)
+
+[class^="btn-group-"] {
+  // background: red;
+  flex: 2;
+}
+.center {
+}
 
 @keyframes pulse {
   to {
