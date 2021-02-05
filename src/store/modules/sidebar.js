@@ -6,6 +6,9 @@ const mutations = {
   TOGGLE_SIDEBAR: (state) => {
     state.show = !state.show;
   },
+  HIDE_SIDEBAR: (state) => {
+    state.show = false;
+  },
 };
 
 const getters = {
@@ -15,6 +18,9 @@ const getters = {
 const actions = {
   toggleSidebar: ({ commit }) => {
     commit("TOGGLE_SIDEBAR");
+  },
+  hideSidebar: ({ commit }) => {
+    commit("HIDE_SIDEBAR");
   },
 };
 

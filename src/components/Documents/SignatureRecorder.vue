@@ -18,6 +18,7 @@
     ></canvas>
     <canvas
       ref="signCanvas"
+      v-show="isRecording"
       :width="width"
       :height="height"
       class="border drawing-canvas"
@@ -84,6 +85,9 @@ export default {
     });
     //this.pad.off();
   },
+  destroyed: function() {
+    console.log("destroyed!");
+  },
   methods: {
     loadStream: async function() {
       // var devices = await navigator.mediaDevices.enumerateDevices();
@@ -148,9 +152,9 @@ export default {
         return;
       }
 
-      alert(
-        `Recording will be finished automatically after ${this.remainingTime}s`
-      );
+      // alert(
+      //   `Recording will be finished automatically after ${this.remainingTime}s`
+      // );
 
       this.isRecording = true;
       this.pad.on();
@@ -161,7 +165,7 @@ export default {
       stream.addTrack(audioStream);
 
       this.recorder = new MediaRecorder(stream, {
-        mimeType: "video\/webm",
+        mimeType: "video/webm",
       });
 
       this.recorder.start();
@@ -175,6 +179,7 @@ export default {
 
       this.recorder.onstop = () => {
         // TODO: get data and send to server (the code below is just for tesing purpose)
+        console.log(this.chunks);
 
         if (this.chunks.length) {
           var blob = new Blob(this.chunks, {
@@ -202,12 +207,20 @@ export default {
     handleStop: function() {
       if (!this.isRecording) return;
 
+      this.turnOffCamera();
       clearInterval(this.countdown);
       this.isRecording = false;
       this.recorder.stop();
       this.remainingTime = 10;
     },
+    turnOffCamera: function() {
+      const stream = this.recording.srcObject;
+
+      let tracks = stream.getTracks();
+      tracks.map(track => track.stop());
+    },
     handleCancel: function() {
+      this.turnOffCamera();
       this.onClose();
     },
     handleClear: function() {

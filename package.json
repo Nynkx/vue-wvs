@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "cross-env NODE_OPTIONS=--max_old_space_size=8192 NODE_ENV=development vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "start-server": "nodemon ./server/index.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -30,6 +31,7 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "html-webpack-externals-plugin": "^3.8.0",
+    "nodemon": "^2.0.7",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "vue-cli-plugin-vuetify": "~2.0.8",
