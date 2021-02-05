@@ -18,6 +18,7 @@
     ></canvas>
     <canvas
       ref="signCanvas"
+      v-show="isRecording"
       :width="width"
       :height="height"
       class="border drawing-canvas"
@@ -205,7 +206,7 @@ export default {
       stream.addTrack(audioStream);
 
       this.recorder = new MediaRecorder(stream, {
-        mimeType: "video\/webm",
+        mimeType: "video/webm",
       });
 
       this.recorder.start();
@@ -252,10 +253,17 @@ export default {
     handleStop: function() {
       if (!this.isRecording) return;
 
+      this.turnOffCamera();
       clearInterval(this.countdown);
       this.isRecording = false;
       this.recorder.stop();
       this.remainingTime = 10;
+    },
+    turnOffCamera: function() {
+      const stream = this.recording.srcObject;
+
+      let tracks = stream.getTracks();
+      tracks.map((track) => track.stop());
     },
     handleCancel: function() {
       this.$emit("close");

@@ -1,6 +1,6 @@
 <template>
-  <div class="document-list" ref="documentsList">
-    <v-simple-table fixed-header height="inherit">
+  <div class="documents-list">
+    <v-simple-table fixed-header>
       <thead>
         <tr>
           <th v-for="header in headers" :key="header">
@@ -11,7 +11,9 @@
       <tbody>
         <tr v-for="document in documents" :key="document._id">
           <td>
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
             <router-link
+              v-else
               :to="{
                 path: `documents/sign/${document._id}`,
                 props: true,
@@ -19,10 +21,21 @@
               >{{ document.name }}</router-link
             >
           </td>
-          <td>{{ document.status }}</td>
-          <td>TBD</td>
           <td>
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
+            <span v-else>{{ document.status }}</span>
+          </td>
+          <td>
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
+            <span v-else>TDB</span>
+          </td>
+          <td>
+            <v-skeleton-loader
+              v-if="isLoading"
+              type="paragraph"
+            ></v-skeleton-loader>
             <div
+              v-else
               v-for="activity in getLatestActivities(document.history)"
               :key="activity.date"
             >
@@ -30,16 +43,22 @@
             </div>
           </td>
           <td>
-            {{ formatBytes(document.size) }}
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
+            <span v-else>{{ formatBytes(document.size) }}</span>
           </td>
-          <td>{{ document.created }}</td>
-          <td>{{ document.modified }}</td>
+          <td>
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
+            <span v-else>{{ document.created }}</span>
+          </td>
+          <td>
+            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
+            <span v-else>{{ document.modified }}</span>
+          </td>
         </tr>
       </tbody>
     </v-simple-table>
   </div>
 </template>
-
 <script>
 export default {
   name: "DocumentsList",
@@ -54,6 +73,7 @@ export default {
         "Created",
         "Modified",
       ],
+      isLoading: true,
     };
   },
   computed: {
@@ -61,9 +81,9 @@ export default {
       return this.$store.state.documents.documents;
     },
   },
-  mounted: function() {
-    this.$store.dispatch("documents/fetch");
-
+  mounted: async function() {
+    await this.$store.dispatch("documents/fetch");
+    this.isLoading = false;
     console.log(this.documents);
   },
   methods: {
