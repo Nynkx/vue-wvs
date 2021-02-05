@@ -44,6 +44,11 @@ export default {
           icon: "mdi-folder",
         },
         {
+          to: "/templates",
+          name: "Templates",
+          icon: "mdi-folder",
+        },
+        {
           to: "/logout",
           name: "Logout",
           icon: "mdi-logout",

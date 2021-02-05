@@ -5,7 +5,7 @@
       <TheSidebar />
       <div class="wvs-container">
         <v-card style="height: 100%">
-          <TheContent />
+          <router-view></router-view>
         </v-card>
       </div>
     </div>
