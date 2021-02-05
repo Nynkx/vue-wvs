@@ -1,6 +1,6 @@
 <template>
   <div>
-    Dashboard
+    Dashboarddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
   </div>
 </template>
 

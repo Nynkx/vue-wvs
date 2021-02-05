@@ -1,41 +1,43 @@
 <template>
-  <v-simple-table fixed-header>
-    <thead>
-      <tr>
-        <th v-for="header in headers" :key="header">
-          {{ header }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="document in documents" :key="document._id">
-        <td>
-          <router-link
-            :to="{
-              path: `documents/sign/${document._id}`,
-              props: true,
-            }"
-            >{{ document.name }}</router-link
-          >
-        </td>
-        <td>{{ document.status }}</td>
-        <td>TBD</td>
-        <td>
-          <div
-            v-for="activity in getLatestActivities(document.history)"
-            :key="activity.date"
-          >
-            {{ `- ${activity.date}: ${activity.content}` }}
-          </div>
-        </td>
-        <td>
-          {{ formatBytes(document.size) }}
-        </td>
-        <td>{{ document.created }}</td>
-        <td>{{ document.modified }}</td>
-      </tr>
-    </tbody>
-  </v-simple-table>
+  <div class="document-list" ref="documentsList">
+    <v-simple-table fixed-header height="inherit">
+      <thead>
+        <tr>
+          <th v-for="header in headers" :key="header">
+            {{ header }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="document in documents" :key="document._id">
+          <td>
+            <router-link
+              :to="{
+                path: `documents/sign/${document._id}`,
+                props: true,
+              }"
+              >{{ document.name }}</router-link
+            >
+          </td>
+          <td>{{ document.status }}</td>
+          <td>TBD</td>
+          <td>
+            <div
+              v-for="activity in getLatestActivities(document.history)"
+              :key="activity.date"
+            >
+              {{ `- ${activity.date}: ${activity.content}` }}
+            </div>
+          </td>
+          <td>
+            {{ formatBytes(document.size) }}
+          </td>
+          <td>{{ document.created }}</td>
+          <td>{{ document.modified }}</td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+  </div>
 </template>
 
 <script>
@@ -84,3 +86,10 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.document-list {
+  height: 100%;
+  width: 100%;
+}
+</style>
