@@ -4,7 +4,7 @@
     <div class="wvs-wrapper">
       <!-- <TheSidebar /> -->
       <div class="wvs-container">
-        <v-card style="height: 100%">
+        <v-card style="height: 100%" elevation="3">
           <TheContent />
         </v-card>
       </div>

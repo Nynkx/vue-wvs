@@ -1,6 +1,5 @@
 <template>
   <div style="height: 100%;">
-    <!-- <v-btn @click="toggleRecorder" color="primary">Open Recorder</v-btn> -->
     <div ref="viewer" class="viewer-container"></div>
     <signature-recorder
       v-if="recorderShow"
@@ -12,13 +11,12 @@
 <script>
 import * as UIExtension from "../../foxit-lib/UIExtension.full.js";
 import "../../foxit-lib/UIExtension.css";
-
-import documentsAPI from "@/apis/documents.api";
+import templatesAPI from "@/apis/templates.api";
 
 import SignatureRecorder from "./SignatureRecorder.vue";
 
 export default {
-  name: "PDFViewer",
+  name: "TemplatePDFViewer",
   computed: {},
   components: {
     "signature-recorder": SignatureRecorder,
@@ -31,22 +29,9 @@ export default {
     };
   },
   mounted: async function() {
-    const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
     this.docId = this.$route.params.id;
 
-    var pdfRes = await documentsAPI.get(`/${this.docId}`);
-
-    var docObj = pdfRes.data;
-
-    console.log(docObj);
-
-    var pdfFileRes = await documentsAPI.get(`/doc/${this.docId}`, {
-      responseType: "arraybuffer",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/pdf",
-      },
-    });
+    const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
 
     const libPath = "/foxit-lib/";
     this.pdfui = new UIExtension.PDFUI({
@@ -58,43 +43,52 @@ export default {
       },
       renderTo: this.$refs.viewer,
       appearance: UIExtension.appearances.adaptive,
+      addons: [
+        `${libPath}uix-addons/file-property`,
+        `${libPath}uix-addons/multi-media`,
+        `${libPath}uix-addons/password-protect`,
+        `${libPath}uix-addons/redaction`,
+        `${libPath}uix-addons/path-objects`,
+        `${libPath}uix-addons/print`,
+        `${libPath}uix-addons/full-screen`,
+        `${libPath}uix-addons/import-form`,
+        `${libPath}uix-addons/export-form`,
+        `${libPath}uix-addons/undo-redo`,
+      ].concat(
+        UIExtension.PDFViewCtrl.DeviceInfo.isMobile
+          ? []
+          : `${libPath}uix-addons/text-object`
+      ),
       template: `
       <webpdf>
+      <toolbar><open-file-dropdown></open-file-dropdown></toolbar>
         <viewer></viewer>
       </webpdf>
       `,
     });
 
-    // console.log(pdfFileRes);
+    var pdfRes = await templatesAPI.get(`/${this.docId}`);
 
-    // TODO: render controls according to metainfo
+    var docObj = pdfRes.data;
+
+    console.log(docObj);
+
+    var pdfFileRes = await templatesAPI.get(`/doc/${this.docId}`, {
+      responseType: "arraybuffer",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/pdf",
+      },
+    });
+
+    var blob = new Blob([pdfFileRes.data], { type: "application/pdf" });
 
     this.pdfui.getPDFViewer().then((viewer) => {
-      viewer.openPDFByFile(pdfFileRes.data);
+      viewer.openPDFByFile(blob);
 
       viewer.eventEmitter.on(ViewerEvents.renderFileSuccess, (pdfDoc) => {
         var page = viewer.getPDFPageRender(0);
         var pageDOM = page.$ui[0];
-
-        var ctrl = document.createElement("div");
-        ctrl.id = "wvs-testcontrol-001";
-        ctrl.style.width = "100px";
-        ctrl.style.height = "100px";
-        ctrl.classList.add("control-item");
-
-        ctrl.style.top = "100px";
-        ctrl.style.left = "100px";
-        ctrl.style.cursor = "pointer";
-        ctrl.addEventListener("click", (e) => {
-          this.toggleRecorder();
-        });
-
-        ctrl.innerHTML = "Sign Test";
-
-        pageDOM.appendChild(ctrl);
-
-        // var page = viewer.getPDFPageRender(0);
-        // var pageDOM = page.$ui[0];
 
         // var docControls = docObj.controls;
 
@@ -122,7 +116,6 @@ export default {
 
         //   pageDOM.appendChild(ctrl);
         // }
-        console.log("File Loaded!");
       });
     });
   },

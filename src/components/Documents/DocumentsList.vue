@@ -1,4 +1,63 @@
-<template src="./DocumentsList.html"> </template>
+<template>
+  <div class="documents-list">
+    <v-toolbar>
+      <v-toolbar-title>Documents: {{ this.docCount }}</v-toolbar-title>
+    </v-toolbar>
+    <v-skeleton-loader
+      style="width:100%;"
+      v-if="isLoading"
+      type="table-thead, table-tbody"
+    ></v-skeleton-loader>
+    <v-simple-table v-else fixed-header>
+      <thead>
+        <tr>
+          <th v-for="header in headers" :key="header">
+            {{ header }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="document in documents" :key="document._id">
+          <td>
+            <router-link
+              :to="{
+                path: `/documents/sign/${document._id}`,
+                props: true,
+              }"
+              >{{ document.name }}</router-link
+            >
+          </td>
+          <td>
+            <span>{{ document.status }}</span>
+          </td>
+          <td>
+            <span>TBD</span>
+          </td>
+          <td v-if="document.history">
+            <div
+              v-for="activity in getLatestActivities(document.history)"
+              :key="activity.date"
+            >
+              {{ `- ${activity.date}: ${activity.content}` }}
+            </div>
+          </td>
+          <td v-else>
+            <span>TBD</span>
+          </td>
+          <td>
+            <span>{{ formatBytes(document.file.size) }}</span>
+          </td>
+          <td>
+            <span>{{ document.created }}</span>
+          </td>
+          <td>
+            <span>{{ document.modified }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+  </div>
+</template>
 <style lang="scss" scoped>
 .document-list {
   height: 100%;
@@ -33,9 +92,11 @@ export default {
         key: "123456",
       },
     });
-    this.docCount = res.data.count;
+
+    this.docCount = res.data.total;
     this.documents = res.data.documents;
     this.isLoading = false;
+
     console.log(this.documents);
   },
   methods: {

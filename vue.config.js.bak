@@ -27,6 +27,11 @@ module.exports = {
       .exclude.add(/node_modules|foxit-lib|license\-key\.js/);
   },
   configureWebpack: {
+    // resolve: {
+    //   alias: {
+    //     src: path.resolve(__dirname, "src"),
+    //   },
+    // },
     plugins: [
       new CopyWebpackPlugin([
         {
@@ -44,5 +49,6 @@ module.exports = {
   lintOnSave: false,
   devServer: {
     disableHostCheck: true,
+    // https: true,
   },
 };

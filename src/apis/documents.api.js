@@ -1,14 +1,13 @@
 import axios from "axios";
 
 const documents = axios.create({
-  baseURL: "http://192.168.0.115:5001/api/v1/documents",
+  baseURL: "http://116.193.68.82:5001/api/v1/documents",
 });
 
 documents.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
     config.params = {
-      key: "12456",
+      key: "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF",
     };
 
     return config;

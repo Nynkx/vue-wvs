@@ -23,7 +23,6 @@ const routes = [
       {
         path: "documents",
         //name: "Documents",
-        alias: "/",
         component: Documents,
         children: [
           {
@@ -41,13 +40,9 @@ const routes = [
       {
         path: "",
         name: "Dashboard",
+        redirect: "/documents",
         alias: ["/home", "/dashboard"],
         component: Dashboard,
-      },
-      {
-        path: "/templates",
-        name: "Templates",
-        component: Templates,
       },
     ],
   },
@@ -74,21 +69,5 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
 });
-
-// router.beforeEach((to, from, next) => {
-//   const publicRoutes = ["/login", "/register"];
-//   const authRequired = !publicRoutes.includes(to.path);
-
-//   const isAuthed = localStorage.getItem("token");
-
-//   if (authRequired && !isAuthed) {
-//     return next("/login");
-//   }
-
-//   if (!authRequired && isAuthed) {
-//     return next("/");
-//   }
-//   next();
-// });
 
 export default router;

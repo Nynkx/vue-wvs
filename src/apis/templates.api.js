@@ -1,26 +1,20 @@
-import axios from 'axios';
+import axios from "axios";
 
-const templates = axios.create({
-    baseURL: 'https://wvs.foxit.co.jp/api/templates'
+const templatesAPI = axios.create({
+  baseURL: "http://116.193.68.82:5000/api/v1/templates",
 });
 
-templates.interceptors.request.use(
-    function(config) {
-        const token = localStorage.getItem("token");
-
-        config.headers = Object.assign(
-            {
-            Authorization: `Bearer ${token}`,
-            },
-            config.headers
-        );
+templatesAPI.interceptors.request.use(
+  function(config) {
+    config.params = {
+      key: "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF",
+    };
 
     return config;
-    },
-    function(err) {
-        console.log(err);
-    }
+  },
+  function(err) {
+    console.log(err);
+  }
 );
 
-
-export default templates;
+export default templatesAPI;

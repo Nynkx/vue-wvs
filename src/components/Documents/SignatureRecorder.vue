@@ -237,7 +237,7 @@ export default {
           a.href = vidURL;
           a.download = "signature.webm";
           document.body.appendChild(a);
-          //a.click();
+          a.click();
 
           this.$emit("close");
         }

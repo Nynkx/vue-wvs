@@ -1,5 +1,5 @@
 import preloadJrWorker from "./foxit-lib/preload-jr-worker";
-import { licenseKey, licenseSN } from "./foxit-lib/license-key";
+import { licenseKey, licenseSN } from "./license-key";
 
 window.readyWorker = preloadJrWorker({
   workerPath: "/foxit-lib/",

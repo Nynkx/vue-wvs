@@ -1,4 +1,7 @@
 <div class="documents-list">
+  <v-toolbar>
+    <v-toolbar-title>Documents: {{this.docCount}}</v-toolbar-title>
+  </v-toolbar>
   <v-skeleton-loader
     style="width:100%;"
     v-if="isLoading"
