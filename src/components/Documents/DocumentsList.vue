@@ -1,65 +1,14 @@
-<template>
-  <div class="documents-list">
-    <v-simple-table fixed-header>
-      <thead>
-        <tr>
-          <th v-for="header in headers" :key="header">
-            {{ header }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="document in documents" :key="document._id">
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <router-link
-              v-else
-              :to="{
-                path: `documents/sign/${document._id}`,
-                props: true,
-              }"
-              >{{ document.name }}</router-link
-            >
-          </td>
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <span v-else>{{ document.status }}</span>
-          </td>
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <span v-else>TDB</span>
-          </td>
-          <td>
-            <v-skeleton-loader
-              v-if="isLoading"
-              type="paragraph"
-            ></v-skeleton-loader>
-            <div
-              v-else
-              v-for="activity in getLatestActivities(document.history)"
-              :key="activity.date"
-            >
-              {{ `- ${activity.date}: ${activity.content}` }}
-            </div>
-          </td>
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <span v-else>{{ formatBytes(document.size) }}</span>
-          </td>
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <span v-else>{{ document.created }}</span>
-          </td>
-          <td>
-            <v-skeleton-loader v-if="isLoading" type="text"></v-skeleton-loader>
-            <span v-else>{{ document.modified }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </v-simple-table>
-  </div>
-</template>
+<template src="./DocumentsList.html"> </template>
+<style lang="scss" scoped>
+.document-list {
+  height: 100%;
+  width: 100%;
+}
+</style>
+
 <script>
+import documentsAPI from "@/apis/documents.api";
+
 export default {
   name: "DocumentsList",
   data: function() {
@@ -73,16 +22,19 @@ export default {
         "Created",
         "Modified",
       ],
+      docCount: 0,
+      documents: [],
       isLoading: true,
     };
   },
-  computed: {
-    documents: function() {
-      return this.$store.state.documents.documents;
-    },
-  },
   mounted: async function() {
-    await this.$store.dispatch("documents/fetch");
+    var res = await documentsAPI.get("", {
+      params: {
+        key: "123456",
+      },
+    });
+    this.docCount = res.data.count;
+    this.documents = res.data.documents;
     this.isLoading = false;
     console.log(this.documents);
   },
@@ -92,6 +44,7 @@ export default {
         ? history.slice(history.length - 6, history.length - 1)
         : history;
     },
+
     formatBytes: function(bytes, decimals = 2) {
       if (bytes === 0) return "0 Bytes";
 
@@ -106,10 +59,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.document-list {
-  height: 100%;
-  width: 100%;
-}
-</style>

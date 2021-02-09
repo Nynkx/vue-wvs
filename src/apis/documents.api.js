@@ -1,19 +1,15 @@
 import axios from "axios";
 
 const documents = axios.create({
-  baseURL: "https://wvs.foxit.co.jp/api/documents",
+  baseURL: "http://192.168.0.115:5001/api/v1/documents",
 });
 
 documents.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    config.headers = Object.assign(
-      {
-        Authorization: `Bearer ${token}`,
-      },
-      config.headers
-    );
+    config.params = {
+      key: "12456",
+    };
 
     return config;
   },

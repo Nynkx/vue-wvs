@@ -10,7 +10,7 @@ const Logout = () => import("@/views/Logout.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
-const Templates = () => import('@/components/Templates/Templates.vue');
+const Templates = () => import("@/components/Templates/Templates.vue");
 const DocumentsList = () => import("@/components/Documents/DocumentsList");
 const PDFViewer = () => import("@/components/Documents/PDFViewer.vue");
 const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");
@@ -23,6 +23,7 @@ const routes = [
       {
         path: "documents",
         //name: "Documents",
+        alias: "/",
         component: Documents,
         children: [
           {
@@ -44,13 +45,13 @@ const routes = [
         component: Dashboard,
       },
       {
-        path: '/templates',
-        name: 'Templates',
+        path: "/templates",
+        name: "Templates",
         component: Templates,
       },
     ],
   },
-  
+
   {
     path: "/login",
     name: "Login",
@@ -74,20 +75,20 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const publicRoutes = ["/login", "/register"];
-  const authRequired = !publicRoutes.includes(to.path);
+// router.beforeEach((to, from, next) => {
+//   const publicRoutes = ["/login", "/register"];
+//   const authRequired = !publicRoutes.includes(to.path);
 
-  const isAuthed = localStorage.getItem("token");
+//   const isAuthed = localStorage.getItem("token");
 
-  if (authRequired && !isAuthed) {
-    return next("/login");
-  }
+//   if (authRequired && !isAuthed) {
+//     return next("/login");
+//   }
 
-  if (!authRequired && isAuthed) {
-    return next("/");
-  }
-  next();
-});
+//   if (!authRequired && isAuthed) {
+//     return next("/");
+//   }
+//   next();
+// });
 
 export default router;

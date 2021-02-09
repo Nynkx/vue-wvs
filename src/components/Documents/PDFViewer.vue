@@ -11,7 +11,7 @@
 <script>
 import * as UIExtension from "../../foxit-lib/UIExtension.full.js";
 import "../../foxit-lib/UIExtension.css";
-import documents from "@/apis/documents.api";
+import documentsAPI from "@/apis/documents.api";
 
 import SignatureRecorder from "./SignatureRecorder.vue";
 
@@ -28,10 +28,10 @@ export default {
       recorderShow: false,
     };
   },
-  mounted: function() {
+  mounted: async function() {
     this.docId = this.$route.params.id;
 
-    console.log(this.docId);
+    const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
 
     const libPath = "/foxit-lib/";
     this.pdfui = new UIExtension.PDFUI({
@@ -61,97 +61,61 @@ export default {
       ),
       template: `
       <webpdf>
-        <toolbar name="toolbar">
-          <open-file-dropdown></open-file-dropdown>\
-        </toolbar>
         <viewer></viewer>
       </webpdf>
       `,
     });
 
-    documents.get(`/${this.docId}`).then((res) => {
-      var doc = res.data.document;
+    var pdfRes = await documentsAPI.get(`/${this.docId}`);
 
-      const ViewerEvents = UIExtension.PDFViewCtrl.ViewerEvents;
+    var docObj = pdfRes.data;
 
-      console.log(res.data);
+    console.log(docObj);
 
-      documents
-        .get(`/doc/${doc.path}`, {
-          params: {
-            id: doc._id,
-            doc: doc.path,
-          },
-          responseType: "arraybuffer",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "application/pdf",
-          },
-        })
-        .then((res) => {
-          var blob = new Blob([res.data], { type: "application/pdf" });
+    var pdfFileRes = await documentsAPI.get(`/doc/${this.docId}`, {
+      responseType: "arraybuffer",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/pdf",
+      },
+    });
 
-          //console.log(res.data);
+    var blob = new Blob([pdfFileRes.data], { type: "application/pdf" });
 
-          // var a = document.createElement("a");
-          // a.style = "display:none;";
-          // a.href = pdfurl;
-          // a.download = doc.path;
-          // document.body.appendChild(a);
-          // a.click();
+    this.pdfui.getPDFViewer().then((viewer) => {
+      viewer.openPDFByFile(blob);
 
-          this.pdfui.getPDFViewer().then((viewer) => {
-            viewer
-              .openPDFByFile(blob)
-              .then((pdfDoc) => {
-                pdfDoc.loadPDFForm();
-                console.log(pdfDoc.getPDFForm());
-              })
-              .catch((err) => console.log(err));
+      viewer.eventEmitter.on(ViewerEvents.renderFileSuccess, (pdfDoc) => {
+        var page = viewer.getPDFPageRender(0);
+        var pageDOM = page.$ui[0];
 
-            viewer.eventEmitter.on(ViewerEvents.renderFileSuccess, (pdfDoc) => {
-              console.log(doc.controls);
+        var docControls = docObj.controls;
 
-              var page = viewer.getPDFPageRender(0);
-              var pageDOM = page.$ui[0];
+        for (var control of docControls) {
+          var controlRect = this.computeRectByScale(
+            control.deviceRect,
+            control.scale,
+            page.getScale()
+          );
 
-              var docControls = doc.controls;
+          var ctrl = document.createElement("div");
+          ctrl.id = control.id;
+          ctrl.style.width = controlRect.width + "px";
+          ctrl.style.height = controlRect.height + "px";
+          ctrl.classList.add("control-item");
 
-              for (var control of docControls) {
-                var controlRect = this.computeRectByScale(
-                  control.deviceRect,
-                  control.scale,
-                  page.getScale()
-                );
-
-                var ctrl = document.createElement("div");
-                ctrl.id = control.id;
-                ctrl.style.width = controlRect.width + "px";
-                ctrl.style.height = controlRect.height + "px";
-                ctrl.classList.add("control-item");
-
-                ctrl.style.top = controlRect.top + "px";
-                ctrl.style.left = controlRect.left + "px";
-                if (
-                  control.type === "svs" &&
-                  control.signer === doc.nextSigner
-                ) {
-                  ctrl.style.cursor = "pointer";
-                  ctrl.addEventListener("click", (e) => {
-                    this.toggleRecorder();
-                  });
-                }
-
-                pageDOM.appendChild(ctrl);
-              }
+          ctrl.style.top = controlRect.top + "px";
+          ctrl.style.left = controlRect.left + "px";
+          if (control.type === "svs" && control.signer === docObj.nextSigner) {
+            ctrl.style.cursor = "pointer";
+            ctrl.addEventListener("click", (e) => {
+              this.toggleRecorder();
             });
+          }
 
-            viewer.eventEmitter.on(
-              ViewerEvents.renderPageSuccess,
-              (pageRender) => {}
-            );
-          });
-        });
+          pageDOM.appendChild(ctrl);
+        }
+      });
     });
   },
   methods: {

@@ -43,7 +43,6 @@ module.exports = {
   transpileDependencies: ["vuetify"],
   lintOnSave: false,
   devServer: {
-    https: true,
-    proxy: "https://wvs.foxit.co.jp",
+    // https: true,
   },
 };

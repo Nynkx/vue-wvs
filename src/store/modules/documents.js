@@ -1,4 +1,4 @@
-import documents from "@/apis/documents.api";
+import documentsAPI from "@/apis/documents.api";
 
 const state = {
   documents: {},
@@ -16,9 +16,8 @@ const getters = {
 
 const actions = {
   fetch: function({ commit }) {
-    return documents.get().then((res) => {
-      commit("DOCUMENT_GET", res.data.list);
-      console.log(res.data.list);
+    return documentsAPI.get("").then((res) => {
+      commit("DOCUMENT_GET", res.data.documents);
     });
   },
 };

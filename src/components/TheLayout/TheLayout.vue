@@ -1,8 +1,8 @@
 <template>
   <div class="wvs-app">
-    <TheHeader class="wvs-header" />
+    <!-- <TheHeader class="wvs-header" /> -->
     <div class="wvs-wrapper">
-      <TheSidebar />
+      <!-- <TheSidebar /> -->
       <div class="wvs-container">
         <v-card style="height: 100%">
           <TheContent />
