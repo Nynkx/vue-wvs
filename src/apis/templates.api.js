@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const templatesAPI = axios.create({
-  baseURL: "http://116.193.68.82:5000/api/v1/templates",
+  baseURL: "https://116.193.68.82:5000/api/v1/templates",
 });
 
 templatesAPI.interceptors.request.use(

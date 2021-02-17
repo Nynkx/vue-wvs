@@ -23,7 +23,7 @@
       :height="height"
       class="border drawing-canvas"
     ></canvas>
-    <div class="wvs-recorder-buttons-group">
+    <div class="wvs-recorder-buttons-group" v-if="isStreamLoaded">
       <div class="btn-group-left"></div>
 
       <div class="center">
@@ -97,6 +97,7 @@ export default {
       countdown: null,
       remainingTime: 30,
       isRecording: false,
+      isStreamLoaded: false,
       pad: null,
     };
   },
@@ -116,6 +117,11 @@ export default {
     window.onresize = this.computeCanvasSize;
   },
   mounted: function() {
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      let cam = devices.filter((device) => device.kind === "videoinput");
+      console.log(cam);
+    });
+
     this.loadStream();
     this.pad = new SignaturePad(this.signCanvas, {
       minWidth: 1.5,
@@ -145,6 +151,7 @@ export default {
         },
       });
       recording.srcObject = stream;
+      this.isStreamLoaded = true;
     },
     handleStream: function() {
       let context = this.videoCanvas.getContext("2d");
@@ -206,7 +213,7 @@ export default {
       stream.addTrack(audioStream);
 
       this.recorder = new MediaRecorder(stream, {
-        mimeType: "video/webm",
+        mimeType: "video/webm; codecs=vp8, opus",
       });
 
       this.recorder.start();

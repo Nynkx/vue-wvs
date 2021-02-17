@@ -3,7 +3,7 @@
     <v-toolbar>
       <v-toolbar-title>Documents: {{ this.docCount }}</v-toolbar-title>
     </v-toolbar>
-    <v-skeleton-loader
+    <!-- <v-skeleton-loader
       style="width:100%;"
       v-if="isLoading"
       type="table-thead, table-tbody"
@@ -55,7 +55,19 @@
           </td>
         </tr>
       </tbody>
-    </v-simple-table>
+    </v-simple-table> -->
+    <v-data-table
+      :items="documents"
+      :headers="headers"
+      :loading="isLoading"
+      loading-text="Loading..."
+    >
+      <template v-slot:item.name="{ item }">
+        <router-link :to="`/documents/sign/${item._id}`">{{
+          item.name
+        }}</router-link>
+      </template>
+    </v-data-table>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -73,13 +85,18 @@ export default {
   data: function() {
     return {
       headers: [
-        "Name",
-        "Status",
-        "Signers",
-        "Activity",
-        "Size",
-        "Created",
-        "Modified",
+        {
+          text: "name",
+          value: "name",
+        },
+        {
+          text: "created",
+          value: "created",
+        },
+        {
+          text: "modified",
+          value: "modified",
+        },
       ],
       docCount: 0,
       documents: [],
