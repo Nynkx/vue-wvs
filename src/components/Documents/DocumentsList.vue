@@ -1,73 +1,36 @@
 <template>
   <div class="documents-list">
-    <v-toolbar>
-      <v-toolbar-title>Documents: {{ this.docCount }}</v-toolbar-title>
-    </v-toolbar>
-    <!-- <v-skeleton-loader
-      style="width:100%;"
-      v-if="isLoading"
-      type="table-thead, table-tbody"
-    ></v-skeleton-loader>
-    <v-simple-table v-else fixed-header>
-      <thead>
-        <tr>
-          <th v-for="header in headers" :key="header">
-            {{ header }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="document in documents" :key="document._id">
-          <td>
-            <router-link
-              :to="{
-                path: `/documents/sign/${document._id}`,
-                props: true,
-              }"
-              >{{ document.name }}</router-link
-            >
-          </td>
-          <td>
-            <span>{{ document.status }}</span>
-          </td>
-          <td>
-            <span>TBD</span>
-          </td>
-          <td v-if="document.history">
-            <div
-              v-for="activity in getLatestActivities(document.history)"
-              :key="activity.date"
-            >
-              {{ `- ${activity.date}: ${activity.content}` }}
-            </div>
-          </td>
-          <td v-else>
-            <span>TBD</span>
-          </td>
-          <td>
-            <span>{{ formatBytes(document.file.size) }}</span>
-          </td>
-          <td>
-            <span>{{ document.created }}</span>
-          </td>
-          <td>
-            <span>{{ document.modified }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </v-simple-table> -->
-    <v-data-table
-      :items="documents"
-      :headers="headers"
-      :loading="isLoading"
-      loading-text="Loading..."
-    >
-      <template v-slot:item.name="{ item }">
-        <router-link :to="`/documents/sign/${item._id}`">{{
-          item.name
-        }}</router-link>
-      </template>
-    </v-data-table>
+    <v-card elevation="1">
+      <v-toolbar elevation="0">
+        <v-toolbar-title>Documents: {{ documentCount }}</v-toolbar-title>
+      </v-toolbar>
+      <v-divider></v-divider>
+      <v-data-table
+        :items="allDocuments"
+        :headers="headers"
+        :loading="isLoading"
+        loading-text="Loading..."
+        disable-pagination
+        :hide-default-footer="true"
+      >
+        <template v-slot:item.name="{ item }">
+          <router-link :to="`/documents/sign/${item._id}`">{{
+            item.name
+          }}</router-link>
+        </template>
+        <template v-slot:item.actions="props">
+          <v-btn icon @click="handleDocumentDelete(props.item._id)">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+      <v-pagination
+        :value="currentPage"
+        :length="totalPages"
+        color="purple"
+        @input="handlePageChange"
+      ></v-pagination>
+    </v-card>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -78,7 +41,7 @@
 </style>
 
 <script>
-import documentsAPI from "@/apis/documents.api";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "DocumentsList",
@@ -86,37 +49,51 @@ export default {
     return {
       headers: [
         {
-          text: "name",
+          text: "Name",
           value: "name",
         },
         {
-          text: "created",
+          text: "Created",
           value: "created",
         },
         {
-          text: "modified",
+          text: "Modified",
           value: "modified",
+        },
+        {
+          text: "Actions",
+          value: "actions",
+          sortable: false,
+          align: "center",
         },
       ],
       docCount: 0,
-      documents: [],
-      isLoading: true,
+      // documents: [],
+      // isLoading: true,
+      // itemsPerPage: 5,
+      // pageCount: 3,
+      // currentPageIndex: 2,
     };
   },
-  mounted: async function() {
-    var res = await documentsAPI.get("", {
-      params: {
-        key: "123456",
-      },
-    });
 
-    this.docCount = res.data.total;
-    this.documents = res.data.documents;
-    this.isLoading = false;
-
-    console.log(this.documents);
+  computed: {
+    ...mapGetters("documents", [
+      "allDocuments",
+      "isLoading",
+      "documentCount",
+      "currentPage",
+      "totalPages",
+      "itemsPerPage",
+    ]),
   },
+
+  created() {
+    this.fetchDocuments(1);
+  },
+
   methods: {
+    ...mapActions("documents", ["fetchDocuments", "deleteDocument"]),
+
     getLatestActivities: function(history) {
       return history.length > 5
         ? history.slice(history.length - 6, history.length - 1)
@@ -133,6 +110,16 @@ export default {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
 
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+    },
+    handleDocumentDelete: function(docID) {
+      let answer = window.confirm("Do you want to delete this document?");
+      if (answer) {
+        this.deleteDocument(docID);
+      }
+    },
+
+    handlePageChange(value) {
+      this.fetchDocuments(value);
     },
   },
 };

@@ -7,7 +7,7 @@
         muted
         ref="recording"
         @play="handleStream()"
-        style="display:none;"
+        style="opacity:0;"
       ></video>
     </div>
     <canvas
@@ -231,7 +231,7 @@ export default {
 
         if (this.chunks.length) {
           var blob = new Blob(this.chunks, {
-            type: "video/webm",
+            type: "video/mpeg",
           });
           var vidURL = URL.createObjectURL(blob);
           this.chunks = [];

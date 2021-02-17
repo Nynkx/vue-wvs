@@ -1,4 +1,3 @@
-import templates from "@/store/modules/templates";
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
@@ -10,7 +9,6 @@ const Logout = () => import("@/views/Logout.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
-const Templates = () => import("@/components/Templates/Templates.vue");
 const DocumentsList = () => import("@/components/Documents/DocumentsList");
 const PDFViewer = () => import("@/components/Documents/PDFViewer.vue");
 const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");

@@ -1,12 +1,13 @@
 import axios from "axios";
 
 const documents = axios.create({
-  baseURL: "http://116.193.68.82:5001/api/v1/documents",
+  baseURL: "http://116.193.68.82:5001/api/v1",
 });
 
 documents.interceptors.request.use(
   (config) => {
     config.params = {
+      ...config.params,
       key: "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF",
     };
 

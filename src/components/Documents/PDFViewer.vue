@@ -40,7 +40,7 @@ export default {
 
     console.log(docObj);
 
-    var pdfFileRes = await documentsAPI.get(`/doc/${this.docId}`, {
+    var pdfFileRes = await documentsAPI.get(`/documents/doc/${this.docId}`, {
       responseType: "arraybuffer",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
