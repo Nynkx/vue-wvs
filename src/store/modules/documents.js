@@ -1,5 +1,4 @@
 import documentsAPI from "@/apis/documents.api";
-import axios from "axios";
 
 const state = {
   loading: false,
@@ -9,6 +8,8 @@ const state = {
   currentPage: 1,
   itemsPerPage: 5,
   totalPages: 1,
+
+  isDocDeleted: false,
 };
 
 const mutations = {
@@ -39,6 +40,10 @@ const mutations = {
     state.totalPages = totalPages;
     state.documentCount = total;
   },
+
+  setDocDeleted: (state, status) => {
+    state.isDocDeleted = status;
+  },
 };
 
 const getters = {
@@ -48,18 +53,14 @@ const getters = {
   currentPage: (state) => state.currentPage,
   itemsPerPage: (state) => state.itemsPerPage,
   totalPages: (state) => state.totalPages,
+  isDocDeleted: (state) => state.isDocDeleted,
 };
 
 const actions = {
-  // fetch: function({ commit }) {
-  //   return documentsAPI.get("").then((res) => {
-  //     commit("DOCUMENT_GET", res.data.documents);
-  //   });
-  // },
-
   fetchDocuments({ commit, state }, page) {
+    commit("setLoading", true);
     const params = {
-      pageNo: page,
+      pageNo: page || state.currentPage,
       pageSize: state.itemsPerPage,
     };
     documentsAPI
@@ -67,15 +68,24 @@ const actions = {
       .then((response) => {
         const { documents, total } = response.data;
         commit("updateDocuments", { documents, total });
-        commit("setCurrentPage", page);
+        commit("setCurrentPage", params.pageNo);
         commit("setLoading", false);
       })
       .catch((ex) => console.error(ex));
   },
-  deleteDocument({ commit, state, dispatch }, docID) {
-    documentsAPI.delete(`/documents/${docID}`).then((response) => {
+
+  async deleteDocument({ commit, state, dispatch }, docID) {
+    try {
+      let response = await documentsAPI.delete(`/documents/${docID}`);
+      console.log(response);
+      commit("setDocDeleted", true);
       dispatch("fetchDocuments", 1);
-    });
+    } catch (ex) {
+      commit("setDocDeleted", false);
+      console.error(ex);
+    }
+
+    console.log(docID);
   },
 };
 

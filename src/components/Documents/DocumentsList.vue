@@ -1,36 +1,52 @@
 <template>
   <div class="documents-list">
     <v-card elevation="1">
-      <v-toolbar elevation="0">
-        <v-toolbar-title>Documents: {{ documentCount }}</v-toolbar-title>
-      </v-toolbar>
-      <v-divider></v-divider>
-      <v-data-table
-        :items="allDocuments"
-        :headers="headers"
-        :loading="isLoading"
-        loading-text="Loading..."
-        disable-pagination
-        :hide-default-footer="true"
-      >
-        <template v-slot:item.name="{ item }">
-          <router-link :to="`/documents/sign/${item._id}`">{{
-            item.name
-          }}</router-link>
-        </template>
-        <template v-slot:item.actions="props">
-          <v-btn icon @click="handleDocumentDelete(props.item._id)">
-            <v-icon>mdi-delete</v-icon>
+      <v-card-text>
+        <v-toolbar elevation="0">
+          <v-toolbar-title>Documents: {{ documentCount }}</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn color="success" large @click="handleRefresh">
+            <v-icon>mdi-cached</v-icon>
           </v-btn>
-        </template>
-      </v-data-table>
-      <v-pagination
-        :value="currentPage"
-        :length="totalPages"
-        color="purple"
-        @input="handlePageChange"
-      ></v-pagination>
+        </v-toolbar>
+
+        <v-divider></v-divider>
+        <v-data-table
+          :items="allDocuments"
+          :headers="headers"
+          :loading="isLoading"
+          loading-text="Loading..."
+          disable-pagination
+          :hide-default-footer="true"
+        >
+          <template v-slot:item.name="{ item }">
+            <router-link :to="`/documents/sign/${item._id}`">{{
+              item.name
+            }}</router-link>
+          </template>
+          <template v-slot:item.actions="props">
+            <v-btn
+              icon
+              :disabled="isLoading"
+              @click="handleDocumentDelete(props.item)"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </template>
+        </v-data-table>
+        <div class="pagination-group">
+          <v-pagination
+            :value="currentPage"
+            :length="totalPages"
+            color="primary"
+            @input="handlePageChange"
+          >
+          </v-pagination>
+        </div>
+      </v-card-text>
     </v-card>
+    <confirm-dialog ref="dialog"></confirm-dialog>
+    <SnackBar ref="snackbar"></SnackBar>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -42,9 +58,15 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import ConfirmDialog from "../ConfirmDialog/ConfirmDialog.vue";
+import SnackBar from "../SnackBar/SnackBar.vue";
 
 export default {
   name: "DocumentsList",
+  components: {
+    ConfirmDialog,
+    SnackBar,
+  },
   data: function() {
     return {
       headers: [
@@ -67,12 +89,6 @@ export default {
           align: "center",
         },
       ],
-      docCount: 0,
-      // documents: [],
-      // isLoading: true,
-      // itemsPerPage: 5,
-      // pageCount: 3,
-      // currentPageIndex: 2,
     };
   },
 
@@ -84,15 +100,21 @@ export default {
       "currentPage",
       "totalPages",
       "itemsPerPage",
+      "isDocDeleted",
     ]),
   },
 
   created() {
-    this.fetchDocuments(1);
+    this.fetchDocuments();
   },
 
   methods: {
     ...mapActions("documents", ["fetchDocuments", "deleteDocument"]),
+
+    handleRefresh: function() {
+      console.log(">> refresh triggered");
+      this.fetchDocuments(this.currentPage);
+    },
 
     getLatestActivities: function(history) {
       return history.length > 5
@@ -111,16 +133,41 @@ export default {
 
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
     },
-    handleDocumentDelete: function(docID) {
-      let answer = window.confirm("Do you want to delete this document?");
-      if (answer) {
-        this.deleteDocument(docID);
+    handleDocumentDelete: async function(doc) {
+      if (
+        await this.$refs.dialog.open(
+          "Confirm Delete",
+          `Are you sure want to delete ${doc.name}`
+        )
+      ) {
+        await this.deleteDocument(doc._id);
+
+        if (this.isDocDeleted) {
+          this.$refs.snackbar.open("Document Deleted!");
+        } else {
+          this.$refs.snackbar.open("Cannot Delete Document!", false);
+        }
       }
     },
 
-    handlePageChange(value) {
-      this.fetchDocuments(value);
+    handlePageChange(pageNo) {
+      this.fetchDocuments(pageNo);
     },
   },
 };
 </script>
+<style scoped>
+.pagination-group {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+
+@media only screen and (max-width: 1024px) {
+  /* .pagination-group {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  } */
+}
+</style>

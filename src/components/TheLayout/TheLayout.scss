@@ -10,7 +10,7 @@
   flex: 1;
   position: relative;
   height: 100%;
-  padding: 0 40px 0 40px;
+  // padding: 0 40px 0 40px;
 }
 
 .wvs-container {
@@ -19,4 +19,8 @@
   overflow: auto;
 }
 
-
+@media only screen and(max-width: 1024px) {
+  // .wvs-wrapper {
+  //   padding: 0;
+  // }
+}

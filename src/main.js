@@ -11,6 +11,10 @@ import vuetify from "./plugins/vuetify";
 Vue.config.productionTip = false;
 
 new Vue({
+  updated: function() {
+    document.documentElement.style = "";
+    document.documentElement.classList.remove("fv__ui-mobile");
+  },
   router,
   store,
   vuetify,
