@@ -10,7 +10,7 @@ const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
 const DocumentsList = () => import("@/components/Documents/DocumentsList");
-const PDFViewer = () => import("@/components/Documents/PDFViewer.vue");
+const PDFViewer = () => import("@/components/PDFViewer/PDFViewer");
 const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");
 
 const routes = [

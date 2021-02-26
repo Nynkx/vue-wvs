@@ -10,17 +10,9 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .documents-wrapper {
-  height: 100%;
-  flex-wrap: wrap;
-  overflow: auto;
   flex: 1;
-
-  .pdf-viewer {
-    height: 100%;
-    flex: 1;
-    overflow: auto;
-  }
+  overflow: auto;
 }
 </style>

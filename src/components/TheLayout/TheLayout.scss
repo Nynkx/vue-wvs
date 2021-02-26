@@ -1,22 +1,20 @@
-.wvs-app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+// .wvs-app {
+//   height: 100%;
+//   display: flex;
+//   flex-direction: column;
+// }
 
-.wvs-wrapper {
-  flex: 1;
-  display: flex;
-  flex: 1;
-  position: relative;
-  height: 100%;
-  // padding: 0 40px 0 40px;
-}
+// .wvs-wrapper {
+//   display: flex;
+//   flex: 1;
+//   position: relative;
+//   height: 100%;
+//   // padding: 0 40px 0 40px;
+// }
 
 .wvs-container {
-  width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow-y: auto;
 }
 
 @media only screen and(max-width: 1024px) {

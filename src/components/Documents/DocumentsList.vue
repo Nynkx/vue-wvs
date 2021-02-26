@@ -1,32 +1,53 @@
 <template>
   <div class="documents-list">
     <v-card elevation="1">
-      <v-card-text>
-        <v-toolbar elevation="0">
-          <v-toolbar-title>Documents: {{ documentCount }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn color="success" large @click="handleRefresh">
-            <v-icon>mdi-cached</v-icon>
-          </v-btn>
-        </v-toolbar>
+      <v-card-title>
+        <h2 class="font-weight-light py-4">
+          Documents:
+          <v-chip class="ma-2" color="primary">
+            {{ documentCount }}
+          </v-chip>
+        </h2>
+        <v-btn icon color="success" @click="handleRefresh">
+          <v-icon>mdi-cached</v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
 
-        <v-divider></v-divider>
+        <v-text-field
+          hide-details
+          rounded
+          outlined
+          dense
+          clearable
+          append-icon="mdi-magnify"
+          label="Search (Case insensitive)"
+          v-model="searchQuery"
+          @click:append="searchDocument"
+          @keydown.enter="searchDocument"
+        >
+        </v-text-field>
+      </v-card-title>
+      <v-card-text>
         <v-data-table
-          :items="allDocuments"
+          :items="displayDocuments"
           :headers="headers"
           :loading="isLoading"
-          loading-text="Loading..."
           disable-pagination
           :hide-default-footer="true"
+          style="position: relative;"
         >
-          <template v-slot:item.name="{ item }">
+          <template slot="body.append">
+            <v-overlay :value="isLoading" absolute color="#FFFFFF"> </v-overlay>
+          </template>
+          <template v-slot:[`item.name`]="{ item }">
             <router-link :to="`/documents/sign/${item._id}`">{{
               item.name
             }}</router-link>
           </template>
-          <template v-slot:item.actions="props">
+          <template v-slot:[`item.actions`]="props">
             <v-btn
               icon
+              color="error"
               :disabled="isLoading"
               @click="handleDocumentDelete(props.item)"
             >
@@ -34,15 +55,17 @@
             </v-btn>
           </template>
         </v-data-table>
-        <div class="pagination-group">
+        <v-card-actions>
+          <v-spacer></v-spacer>
           <v-pagination
             :value="currentPage"
             :length="totalPages"
+            :total-visible="6"
             color="primary"
             @input="handlePageChange"
           >
           </v-pagination>
-        </div>
+        </v-card-actions>
       </v-card-text>
     </v-card>
     <confirm-dialog ref="dialog"></confirm-dialog>
@@ -69,10 +92,15 @@ export default {
   },
   data: function() {
     return {
+      searchQuery: "",
       headers: [
         {
           text: "Name",
           value: "name",
+        },
+        {
+          text: "Size",
+          value: "size",
         },
         {
           text: "Created",
@@ -101,7 +129,21 @@ export default {
       "totalPages",
       "itemsPerPage",
       "isDocDeleted",
+      "docSearchName",
     ]),
+
+    displayDocuments() {
+      const documents = (this.allDocuments || []).map((item) => {
+        return {
+          ...item,
+          size: this.formatBytes(item.file.size),
+          // created: this.toDateString(item.created),
+          // modified: this.toDateString(item.modified),
+        };
+      });
+
+      return documents;
+    },
   },
 
   created() {
@@ -109,7 +151,11 @@ export default {
   },
 
   methods: {
-    ...mapActions("documents", ["fetchDocuments", "deleteDocument"]),
+    ...mapActions("documents", [
+      "fetchDocuments",
+      "deleteDocument",
+      "searchForDocuments",
+    ]),
 
     handleRefresh: function() {
       console.log(">> refresh triggered");
@@ -152,6 +198,11 @@ export default {
 
     handlePageChange(pageNo) {
       this.fetchDocuments(pageNo);
+    },
+
+    searchDocument: function() {
+      console.log(this.searchQuery);
+      this.searchForDocuments(this.searchQuery);
     },
   },
 };

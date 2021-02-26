@@ -4,26 +4,62 @@
   box-sizing: border-box;
 }
 
-html {
-  overflow: auto;
-}
-
 .border {
   border: 1px solid black;
 }
 
-body {
-  min-height: 100%;
-  max-height: 100%;
+body,
+html {
+  height: 100vh;
+  max-height: 100vh;
+  // background: red;
+}
+html {
+  overflow: hidden !important;
 }
 
 #app {
   height: 100%;
 }
 
-@media screen and (max-width: 1220px) {
+@media only screen and (min-width: 320px) and (max-width: 1220px) {
   html,
   body {
     font-size: 0.85rem !important;
   }
+  .fv__pdf-page-handler-container {
+    touch-action: manipulation !important;
+  }
+}
+
+/** Test fix foxit sdk */
+// @media only screen and (min-width: 320px) and (max-width: 1220px) {
+//   .fv__pdf-page-handler-container {
+//     touch-action: manipulation !important;
+//   }
+// }
+
+.control-item {
+  position: absolute;
+  background: orange;
+  z-index: 50;
+}
+
+.control-item__text {
+  padding: 2px;
+  border: 1px gray solid;
+  border-radius: 2px;
+}
+
+button.control-item {
+  background: lightgreen;
+
+  &:hover {
+    border: dotted darkorange 2px;
+  }
+}
+
+input.control-item[type="text"] {
+  font-weight: bold;
+  // font-size: 1.2em;
 }

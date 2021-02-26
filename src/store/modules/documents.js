@@ -10,6 +10,8 @@ const state = {
   totalPages: 1,
 
   isDocDeleted: false,
+
+  docSearchName: "",
 };
 
 const mutations = {
@@ -44,6 +46,10 @@ const mutations = {
   setDocDeleted: (state, status) => {
     state.isDocDeleted = status;
   },
+
+  setDocSearchName: (state, searchName) => {
+    state.docSearchName = searchName;
+  },
 };
 
 const getters = {
@@ -54,6 +60,7 @@ const getters = {
   itemsPerPage: (state) => state.itemsPerPage,
   totalPages: (state) => state.totalPages,
   isDocDeleted: (state) => state.isDocDeleted,
+  docSearchName: (state) => state.docSearchName,
 };
 
 const actions = {
@@ -62,7 +69,9 @@ const actions = {
     const params = {
       pageNo: page || state.currentPage,
       pageSize: state.itemsPerPage,
+      name: state.docSearchName,
     };
+    console.log(state.docSearchName);
     documentsAPI
       .get("/documents", { params })
       .then((response) => {
@@ -72,6 +81,11 @@ const actions = {
         commit("setLoading", false);
       })
       .catch((ex) => console.error(ex));
+  },
+
+  searchForDocuments({ commit, state, dispatch }, searchName) {
+    commit("setDocSearchName", searchName);
+    dispatch("fetchDocuments", 1);
   },
 
   async deleteDocument({ commit, state, dispatch }, docID) {

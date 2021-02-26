@@ -18,7 +18,7 @@ export default {
   name: "SnackBar",
   data: function() {
     return {
-      timeout: 0,
+      timeout: -1,
       snackbar: false,
       message: "",
       isSuccess: true,

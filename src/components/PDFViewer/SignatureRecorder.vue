@@ -131,9 +131,8 @@ export default {
     this.pad.off();
   },
   beforeDestroy: function() {
-    this.recording.srcObject.getTracks().forEach((track) => track.stop());
+    this.recording.srcObject.getTracks().map((track) => track.stop());
     clearInterval(this.canvasInterval);
-    console.log(this.recording.srcObject.getTracks());
   },
   methods: {
     loadStream: async function() {
@@ -193,7 +192,22 @@ export default {
           this.width - metrics.width * remainingTime.length - 5,
           25
         );
+
+        if (this.isRecording) {
+          this.takeCanvasSnapShot().then((blob) => {
+            var image = {
+              name: `frame_${new Date().valueOf()}.jpeg`,
+              blob: blob,
+            };
+            this.chunks.push(image);
+          });
+        }
       }, 1000 / 10);
+    },
+    takeCanvasSnapShot: async function() {
+      return new Promise(async (resolve, reject) => {
+        this.videoCanvas.toBlob(resolve, "image/jpeg");
+      });
     },
     handleRecord: function(event) {
       if (this.isRecording) {
@@ -207,48 +221,47 @@ export default {
       this.isRecording = true;
       this.pad.on();
 
-      let stream = this.videoCanvas.captureStream(10);
-      let audioStream = this.recording.captureStream().getAudioTracks()[0];
+      // let stream = this.videoCanvas.captureStream(10);
+      // let audioStream = this.recording.captureStream().getAudioTracks()[0];
 
-      stream.addTrack(audioStream);
+      // stream.addTrack(audioStream);
 
-      this.recorder = new MediaRecorder(stream, {
-        mimeType: "video/webm; codecs=vp8, opus",
-      });
+      // this.recorder = new MediaRecorder(stream, {
+      //   mimeType: "video/webm; codecs=vp8, opus",
+      // });
 
-      this.recorder.start();
+      // this.recorder.start();
 
-      //* log
-      this.recorder.state == "recording" && console.log("start recording...");
+      // this.recorder.state == "recording" && console.log("start recording...");
 
-      this.recorder.ondataavailable = (e) => {
-        e.data.size && this.chunks.push(e.data);
-      };
+      // this.recorder.ondataavailable = (e) => {
+      //   e.data.size && this.chunks.push(e.data);
+      // };
 
-      this.recorder.onstop = () => {
-        // TODO: get data and send to server (the code below is just for tesing purpose)
-        console.log(this.chunks);
+      // this.recorder.onstop = () => {
+      //   // TODO: get data and send to server (the code below is just for tesing purpose)
+      //   console.log(this.chunks);
 
-        if (this.chunks.length) {
-          var blob = new Blob(this.chunks, {
-            type: "video/mpeg",
-          });
-          var vidURL = URL.createObjectURL(blob);
-          this.chunks = [];
+      //   if (this.chunks.length) {
+      //     var blob = new Blob(this.chunks, {
+      //       type: "video/mpeg",
+      //     });
+      //     var vidURL = URL.createObjectURL(blob);
+      //     this.chunks = [];
 
-          var image = this.pad.toDataURL("image/png");
-          console.log(this.chunks);
+      //     var image = this.pad.toDataURL("image/png");
+      //     console.log(this.chunks);
 
-          var a = document.createElement("a");
-          a.style = "display:none;";
-          a.href = vidURL;
-          a.download = "signature.webm";
-          document.body.appendChild(a);
-          a.click();
+      //     var a = document.createElement("a");
+      //     a.style = "display:none;";
+      //     a.href = vidURL;
+      //     a.download = "signature.webm";
+      //     document.body.appendChild(a);
+      //     a.click();
 
-          this.$emit("close");
-        }
-      };
+      //     this.$emit("close");
+      //   }
+      // };
 
       this.countdown = setInterval(() => {
         this.remainingTime--;
@@ -260,11 +273,12 @@ export default {
     handleStop: function() {
       if (!this.isRecording) return;
 
-      this.turnOffCamera();
+      //this.turnOffCamera();
       clearInterval(this.countdown);
       this.isRecording = false;
-      this.recorder.stop();
+      // this.recorder.stop();
       this.remainingTime = 10;
+      console.log(this.chunks);
     },
     turnOffCamera: function() {
       const stream = this.recording.srcObject;
