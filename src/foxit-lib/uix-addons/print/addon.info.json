@@ -4,7 +4,9 @@
         "ns": "print",
         "sources": {
             "zh-CN": "./locales/zh-CN.json",
-            "en-US": "./locales/en-US.json"
+            "en-US": "./locales/en-US.json",
+            "ko-KR": "./locales/ko-KR.json",
+            "ja-JP": "./locales/ja-JP.json"
         }
     },
     "css":[

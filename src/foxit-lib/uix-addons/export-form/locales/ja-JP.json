@@ -1,10 +1,12 @@
 {
-    "button-tooltip": {
-        "title": "フォームを書き出し"
-    },
-    "export": {
-        "xml": "XML ファイル",
-        "fdf": "FDF ファイル",
-        "xfdf": "XFDF ファイル"
-    }
+  "button-tooltip": {
+    "title": "フォームデータの書き出し"
+  },
+  "export": {
+    "xml": "XML ファイル",
+    "fdf": "FDF ファイル",
+    "xfdf": "XFDF ファイル",
+    "csv": "CSV ファイル",
+    "txt": "TXT ファイル"
+  }
 }

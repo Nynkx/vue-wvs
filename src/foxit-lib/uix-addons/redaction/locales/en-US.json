@@ -1,9 +1,9 @@
 {
     "buttons": {
-        "title": "Redaction",
-        "redact_text": "Mark Text to Redact",
-        "redact_area": "Mark Area to Redact",
-        "redact_page": "Mark Page to Redact",
+        "title": "Mark for Redaction",
+        "redact_text": "Mark Text",
+        "redact_area": "Mark Area",
+        "redact_page": "Mark Page",
         "redact_search": "Find Text",
         "apply"      : "Apply",
         "ok": "OK",
@@ -11,13 +11,13 @@
     },
     "tooltips": {
         "redaction": "Mark content for redaction",
-        "apply": "Apply to remove all marked content"
+        "apply": "Remove the marked content permanently"
     },
     "dialog": {
-        "apply_alert": "This operation will permanently remove the content that has been marked to redact, and cannot be undone.",
+        "apply_alert": "You are about to permanently redact the selected content that has been marked for redaction. By selecting Apply, the operation cannot be undone.\nAre you sure you want to continue?\nIMPORTANT! It is recommended that you save a backup copy of this document before you apply redactions.",
         "redaction_page": {
             "mark_current_page": "Mark current page for redaction",
-            "mark_specific_page": "Mark specific page range for redaction",
+            "mark_specific_page": "Mark the selected pages for redaction",
             "page_range": "Page range"
         }
     }

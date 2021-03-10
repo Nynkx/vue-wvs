@@ -91,9 +91,9 @@ const actions = {
   async deleteDocument({ commit, state, dispatch }, docID) {
     try {
       let response = await documentsAPI.delete(`/documents/${docID}`);
-      console.log(response);
+      // console.log(response);
       commit("setDocDeleted", true);
-      dispatch("fetchDocuments", 1);
+      dispatch("fetchDocuments", state.currentPage);
     } catch (ex) {
       commit("setDocDeleted", false);
       console.error(ex);

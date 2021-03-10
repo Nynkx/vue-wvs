@@ -25,19 +25,7 @@ documents.interceptors.response.use(
   (err) => {
     const { status, data } = err.response;
 
-    switch (status) {
-      case 401:
-        localStorage.clear();
-        console.log(data);
-        window.location.replace("/login");
-        break;
-      case 404:
-        console.log(status);
-        break;
-      default:
-        console.log(status);
-        break;
-    }
+    console.error(status);
 
     return Promise.reject(err);
   }

@@ -3,15 +3,11 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 
 Vue.use(VueRouter);
-
-const Login = () => import("@/views/Login.vue");
-const Logout = () => import("@/views/Logout.vue");
 const Page404 = () => import("@/views/Page404.vue");
 
 const Documents = () => import("@/components/Documents/Documents.vue");
 const DocumentsList = () => import("@/components/Documents/DocumentsList");
 const PDFViewer = () => import("@/components/PDFViewer/PDFViewer");
-const Dashboard = () => import("@/components/Dashboard/Dashboard.vue");
 
 const routes = [
   {
@@ -37,23 +33,9 @@ const routes = [
       },
       {
         path: "",
-        name: "Dashboard",
         redirect: "/documents",
-        alias: ["/home", "/dashboard"],
-        component: Dashboard,
       },
     ],
-  },
-
-  {
-    path: "/login",
-    name: "Login",
-    component: Login,
-  },
-  {
-    path: "/logout",
-    name: "Logout",
-    component: Logout,
   },
   {
     path: "/*",

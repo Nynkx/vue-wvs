@@ -12,7 +12,6 @@ export default {
 
 <style scoped>
 .documents-wrapper {
-  flex: 1;
-  overflow: auto;
+  height: 100%;
 }
 </style>

@@ -162,12 +162,6 @@ export default {
       this.fetchDocuments(this.currentPage);
     },
 
-    getLatestActivities: function(history) {
-      return history.length > 5
-        ? history.slice(history.length - 6, history.length - 1)
-        : history;
-    },
-
     formatBytes: function(bytes, decimals = 2) {
       if (bytes === 0) return "0 Bytes";
 
@@ -212,13 +206,5 @@ export default {
   display: flex;
   align-content: center;
   justify-content: center;
-}
-
-@media only screen and (max-width: 1024px) {
-  /* .pagination-group {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-  } */
 }
 </style>

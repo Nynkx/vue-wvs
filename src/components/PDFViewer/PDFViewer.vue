@@ -1,36 +1,41 @@
 <template>
   <div class="viewer-wrapper">
-    <v-app-bar
-      fixed
-      absolute
-      scroll-target=".viewer-container"
-      style="z-index:99"
-    >
-      <v-btn icon @click="handleBackward">
-        <v-icon>mdi-arrow-left</v-icon>
-      </v-btn>
-      <v-toolbar-title>{{ docInfo.name }}</v-toolbar-title>
+    <v-app-bar style="z-index:99" fixed hide-on-scroll scroll-target="#viewer">
+      <v-toolbar-title>{{ title }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
-      <v-btn depressed text>
-        Submit
-      </v-btn>
+      <v-toolbar-items>
+        <v-btn text color="error" :disabled="false" @click="downloadDoc">
+          <v-icon class="px-1">mdi-download</v-icon>
+          (Dev) Download Document
+        </v-btn>
+        <v-btn text color="success" :disabled="false">
+          <v-icon class="px-1">mdi-upload</v-icon>
+          Submit
+        </v-btn>
 
-      <v-btn depressed text>
-        Reset
-      </v-btn>
+        <v-btn
+          text
+          color="primary"
+          :disabled="false"
+          @click="handelResetDocument"
+        >
+          <v-icon class="px-1">mdi-reload</v-icon>
+          Reset
+        </v-btn>
+      </v-toolbar-items>
     </v-app-bar>
     <v-overlay :value="this.isDocLoading" style="z-index:99">
       <v-progress-circular indeterminate size="50"></v-progress-circular>
     </v-overlay>
 
-    <div class="viewer-container">
-      <div ref="viewer" id="viewer"></div>
-    </div>
+    <div ref="viewer" class="viewer-container" id="viewer"></div>
+
     <signature-recorder
       v-if="recorderShow"
       @close="toggleRecorder"
+      @data-available="handleRecordedData"
     ></signature-recorder>
   </div>
 </template>
@@ -38,13 +43,14 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 
-import { PDFViewer, Events, ScrollWrap } from "@/foxit-lib/PDFViewCtrl.full";
+import {
+  PDFViewer,
+  Events,
+  PDF,
+  ScrollWrap,
+} from "@/foxit-lib/PDFViewCtrl.full";
 
-import documentsAPI from "@/apis/documents.api";
-
-import SignatureRecorder from "./SignatureRecorder.vue";
-
-import drawIcon from "@/assets/icons/draw.svg";
+import SignatureRecorder from "../SignatureRecorder/SignatureRecorder.vue";
 
 export default {
   name: "PDFViewer",
@@ -55,8 +61,12 @@ export default {
   data: function() {
     return {
       docId: "",
-      pdfui: null,
+      pdfViewer: null,
       recorderShow: false,
+      title: "",
+      controls: [],
+      selectedControl: null,
+      annotID: "",
     };
   },
   computed: {
@@ -65,40 +75,71 @@ export default {
       "docInfo",
       "docFile",
       "baseScale",
+      "signatureVideo",
     ]),
+  },
+  updated: function() {
+    if (!this.recorderShow) {
+      window.onresize = this.handleWindowResize;
+    }
   },
   mounted: async function() {
     try {
-      await this.initPDFViewer();
+      this.initPDFViewer();
 
       this.docId = this.$route.params.id;
 
       await this.fetchDocInfo(this.docId);
+      this.title = this.docInfo.name;
 
       console.log("document info vvv");
       console.log(this.docInfo);
 
-      this.pdfui.openPDFByFile(this.docFile);
+      this.pdfViewer.openPDFByFile(
+        new Blob([this.docFile], { type: "application/pdf" })
+      );
 
-      this.pdfui.eventEmitter.on(Events.renderFileSuccess, (pdfDoc) => {
+      this.pdfViewer.eventEmitter.on(Events.renderFileSuccess, (pdfDoc) => {
         this.renderControls(this.docInfo.metaInfo.controls);
-        window.onresize = this.handleWindowResize;
       });
 
-      this.pdfui.eventEmitter.on(Events.zoomToSuccess, (newScale, oldScale) => {
-        newScale = this.pdfui.getPDFPageRender(0).getScale();
-        this.resizeControls(this.baseScale, newScale);
-        this.setBaseScale(newScale);
-        // this.handleWindowResize();
+      // this.pdfViewer.eventEmitter.on(
+      //   Events.zoomToSuccess,
+      //   (newScale, oldScale) => {
+      //     newScale = this.pdfViewer.getPDFPageRender(0).getScale();
+      //     this.resizeControls(this.baseScale, newScale);
+      //     this.setBaseScale(newScale);
+      //   }
+      // );
+
+      this.pdfViewer.eventEmitter.on(Events.pageLayoutRedraw, (pageRender) => {
+        this.resizeControls(pageRender.getScale());
+        this.setBaseScale(pageRender.getScale());
       });
+
+      window.onresize = this.handleWindowResize;
     } catch (ex) {
       console.error(ex);
     }
-
-    // TODO: render controls according to metainfo
   },
   methods: {
-    ...mapActions("document_viewer", ["fetchDocInfo", "setBaseScale"]),
+    ...mapActions("document_viewer", [
+      "fetchDocInfo",
+      "setBaseScale",
+      "createSignatureVideo",
+      "startLoading",
+      "stopLoading",
+    ]),
+
+    base64ToArrayBuffer: function(base64) {
+      var binary_string = window.atob(base64);
+      var len = binary_string.length;
+      var bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    },
 
     computeRectByScale: function(rect, oldScale, newScale) {
       var newRect = {
@@ -113,11 +154,11 @@ export default {
       return newRect;
     },
 
-    initPDFViewer: async function() {
+    initPDFViewer: function() {
       var container = document.querySelector("#viewer");
 
-      this.pdfui = new PDFViewer({
-        libPath: "../../foxit-lib",
+      this.pdfViewer = new PDFViewer({
+        libPath: "../foxit-lib",
         jr: {
           readyWorker: window.readyWorker,
         },
@@ -150,16 +191,15 @@ export default {
           },
         },
       });
-
-      this.pdfui.init("#viewer");
+      this.pdfViewer.init("#viewer");
     },
 
     renderControls: function(controlsMetaInfo) {
-      var viewerScale = this.pdfui.getPDFPageRender(0).getScale();
+      var viewerScale = this.pdfViewer.getPDFPageRender(0).getScale();
       this.setBaseScale(viewerScale);
 
       for (var controlInfo of controlsMetaInfo) {
-        var page = this.pdfui.getPDFPageRender(controlInfo.pageNo);
+        var page = this.pdfViewer.getPDFPageRender(controlInfo.pageNo);
         var pageDOM = page.$ui[0];
 
         var controlRect = this.computeRectByScale(
@@ -176,6 +216,7 @@ export default {
             ctrl.classList.add("control-item__text");
             ctrl.setAttribute("type", "text");
             ctrl.setAttribute("autocomplete", "off");
+            ctrl.style["font-size"] = controlRect.height - 3 + "px";
             break;
           case "wvs-check":
             ctrl = document.createElement("input");
@@ -184,41 +225,50 @@ export default {
           case "wvs-video":
             ctrl = document.createElement("button");
             ctrl.classList.add("v-btn");
-            var icon = document.createElement("img");
-            icon.src = drawIcon;
-            icon.style.width = "85%";
+            var icon = document.createElement("i");
+            icon.classList.add(
+              "v-icon",
+              "mdi",
+              "mdi-draw",
+              "deep-orange--text"
+            );
+            icon.style.transform = `scale(${Math.max(
+              controlRect.height,
+              controlRect.width
+            ) * 0.03})`;
+
             ctrl.setAttribute("data-signer", controlInfo.signer);
             ctrl.appendChild(icon);
+            ctrl.addEventListener("click", this.showRecorder);
 
-            ctrl.addEventListener("click", this.toggleRecorder);
             break;
           default:
             return;
         }
+        ctrl.classList.add("control-item");
 
         ctrl.id = controlInfo.id;
-
-        ctrl.style.position = "absolute";
 
         ctrl.style.width = controlRect.width + "px";
         ctrl.style.height = controlRect.height + "px";
         ctrl.style.top = controlRect.top + "px";
         ctrl.style.left = controlRect.left + "px";
 
-        ctrl.setAttribute("data-x", controlRect.left);
-        ctrl.setAttribute("data-y", controlRect.top);
-        ctrl.setAttribute("data-w", controlRect.width);
-        ctrl.setAttribute("data-h", controlRect.height);
-
-        ctrl.classList.add("control-item");
+        ctrl.setAttribute("data-x", controlInfo.deviceRect.left);
+        ctrl.setAttribute("data-y", controlInfo.deviceRect.top);
+        ctrl.setAttribute("data-w", controlInfo.deviceRect.width);
+        ctrl.setAttribute("data-h", controlInfo.deviceRect.height);
+        ctrl.setAttribute("data-scale", controlInfo.scale);
+        ctrl.setAttribute("data-pageno", controlInfo.pageNo);
+        ctrl.setAttribute("data-type", controlInfo.type);
 
         pageDOM.appendChild(ctrl);
       }
+      console.log(this.controls);
     },
 
-    resizeControls: function(oldScale, newScale) {
+    resizeControls: function(newScale) {
       var controls = document.querySelectorAll(".control-item");
-
       for (var control of controls) {
         var controlRect = this.computeRectByScale(
           {
@@ -227,7 +277,7 @@ export default {
             width: control.getAttribute("data-w"),
             height: control.getAttribute("data-h"),
           },
-          oldScale,
+          control.getAttribute("data-scale"),
           newScale
         );
 
@@ -235,31 +285,143 @@ export default {
         control.style.top = controlRect.top + "px";
         control.style.width = controlRect.width + "px";
         control.style.height = controlRect.height + "px";
-
-        control.setAttribute("data-x", controlRect.left);
-        control.setAttribute("data-y", controlRect.top);
-        control.setAttribute("data-w", controlRect.width);
-        control.setAttribute("data-h", controlRect.height);
       }
     },
 
     toggleRecorder: function() {
       this.recorderShow = !this.recorderShow;
     },
+    showRecorder: function(e) {
+      this.recorderShow = true;
+      let button = e.target.id ? e.target : e.target.parentNode;
+
+      console.log({
+        signer: button.getAttribute("data-signer"),
+        "page-index": button.getAttribute("data-pageno"),
+      });
+
+      this.selectedControl = button;
+    },
 
     handleWindowResize: async function() {
       try {
-        await this.pdfui.redraw();
-        var newScale = this.pdfui.getPDFPageRender(0).getScale();
-
-        this.resizeControls(this.baseScale, newScale);
-        this.setBaseScale(newScale);
+        await this.pdfViewer.redraw();
       } catch (err) {
         console.error(err);
       }
     },
-    handleBackward: function() {
-      this.$router.back();
+    handleRecordedData: async function(recordedData) {
+      this.startLoading();
+
+      await this.createSignatureVideo(recordedData);
+
+      let pageIndex = this.selectedControl.getAttribute("data-pageno");
+      let pdfPageRender = this.pdfViewer.getPDFPageRender(pageIndex);
+      let insertRect = this.selectedControl.getBoundingClientRect();
+      insertRect.y = this.selectedControl.offsetTop;
+      insertRect.x = this.selectedControl.offsetLeft;
+
+      await this.insertSignatureVideo(
+        this.signatureVideo,
+        insertRect,
+        pageIndex,
+        pdfPageRender.getScale()
+      );
+
+      console.log(recordedData.image);
+
+      let img = this.base64ToArrayBuffer(recordedData.image.split(",")[1]);
+
+      await this.insertSignature(
+        img,
+        insertRect,
+        pageIndex,
+        pdfPageRender.getScale()
+      );
+
+      this.selectedControl.parentNode.removeChild(this.selectedControl);
+      this.selectedControl = null;
+    },
+
+    handelResetDocument: function() {
+      this.pdfViewer.openPDFByFile(
+        new Blob([this.docFile], { type: "application/pdf" })
+      );
+    },
+    insertSignature: function(signImg, insertRect, pageIndex, scale) {
+      let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
+      pdfDoc.getPageByIndex(pageIndex).then((page) => {
+        let deviceRect = page.reverseDeviceRect(insertRect, scale);
+        console.log(deviceRect);
+        page
+          .addImage(signImg, {
+            left: deviceRect.left,
+            top: deviceRect.top,
+            right: deviceRect.right,
+            bottom: deviceRect.bottom,
+          })
+          .then()
+          .catch((error) => console.error(error));
+      });
+    },
+
+    insertSignatureVideo: async function(
+      videoBlob,
+      insertRect,
+      pageIndex,
+      scale
+    ) {
+      let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
+      let reader = new FileReader();
+      reader.onload = (event) => {
+        let buffer = new Uint8Array(event.target.result);
+        pdfDoc.getPageByIndex(pageIndex).then((page) => {
+          let deviceRect = page.reverseDeviceRect(insertRect, scale);
+          console.log(deviceRect);
+          page
+            .addAnnot({
+              type: PDF.annots.constant.Annot_Type.screen,
+              rect: {
+                left: deviceRect.left,
+                top: deviceRect.top,
+                right: deviceRect.right,
+                bottom: deviceRect.bottom,
+              },
+              opacity: 0.5,
+              contentType: "video/mpeg",
+              multiBuffer: buffer,
+              fileName: `svs-${new Date().getTime()}.mp4`,
+            })
+            .then((annots) => {
+              console.log("Attach file success", annots);
+              this.annotID = annots[0].id;
+              console.log(this.annotID);
+              this.stopLoading();
+            })
+            .catch((error) => console.error(error));
+        });
+      };
+      reader.readAsArrayBuffer(videoBlob);
+    },
+
+    //! test function
+    downloadDoc: function() {
+      let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
+      let buffer = [];
+      pdfDoc
+        .getStream(({ arrayBuffer, offset, size }) => {
+          buffer.push(arrayBuffer);
+        })
+        .then((size) => {
+          let blob = new Blob(buffer, { type: "application/pdf" });
+
+          let a = document.createElement("a");
+          a.style = "display:none;";
+          a.href = URL.createObjectURL(blob);
+          a.download = "signature.pdf";
+          document.body.appendChild(a);
+          a.click();
+        });
     },
   },
 };

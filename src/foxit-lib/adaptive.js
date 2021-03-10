@@ -15,15 +15,10 @@ var deviceInfo = (function () {
 })();
 (function() {
     var html = document.documentElement;
-    if(deviceInfo.isTablet) {
-        html.classList.add('fv__ui-tablet');
-    }
     if (!deviceInfo.isMobile) {
         return;
     }
     var designDraftWidth = 750;
-
-    html.classList.add('fv__ui-mobile');
 
     function resetOnResize() {
         var size = Math.min(screen.availHeight, screen.availWidth);
