@@ -6,11 +6,16 @@
       <v-spacer></v-spacer>
 
       <v-toolbar-items>
-        <v-btn text color="error" :disabled="false" @click="downloadDoc">
+        <v-btn
+          text
+          color="error"
+          :disabled="!this.isDocModified"
+          @click="downloadDoc"
+        >
           <v-icon class="px-1">mdi-download</v-icon>
           (Dev) Download Document
         </v-btn>
-        <v-btn text color="success" :disabled="false">
+        <v-btn text color="success" :disabled="!this.isDocModified">
           <v-icon class="px-1">mdi-upload</v-icon>
           Submit
         </v-btn>
@@ -18,7 +23,7 @@
         <v-btn
           text
           color="primary"
-          :disabled="false"
+          :disabled="!this.isDocModified"
           @click="handelResetDocument"
         >
           <v-icon class="px-1">mdi-reload</v-icon>
@@ -76,6 +81,7 @@ export default {
       "docFile",
       "baseScale",
       "signatureVideo",
+      "isDocModified",
     ]),
   },
   updated: function() {
@@ -129,6 +135,7 @@ export default {
       "createSignatureVideo",
       "startLoading",
       "stopLoading",
+      "setDocModifyState",
     ]),
 
     base64ToArrayBuffer: function(base64) {
@@ -328,8 +335,6 @@ export default {
         pdfPageRender.getScale()
       );
 
-      console.log(recordedData.image);
-
       let img = this.base64ToArrayBuffer(recordedData.image.split(",")[1]);
 
       await this.insertSignature(
@@ -341,12 +346,18 @@ export default {
 
       this.selectedControl.parentNode.removeChild(this.selectedControl);
       this.selectedControl = null;
+
+      this.setDocModifyState(true);
     },
 
-    handelResetDocument: function() {
-      this.pdfViewer.openPDFByFile(
+    handelResetDocument: async function() {
+      this.startLoading();
+      await this.pdfViewer.openPDFByFile(
         new Blob([this.docFile], { type: "application/pdf" })
       );
+
+      this.setDocModifyState(false);
+      this.stopLoading();
     },
     insertSignature: function(signImg, insertRect, pageIndex, scale) {
       let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
