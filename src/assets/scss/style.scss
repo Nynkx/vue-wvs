@@ -89,10 +89,21 @@ html {
   border-radius: 2px;
 }
 
+.control-item--disabled {
+  background: #797979;
+}
+
 button.control-item {
   background: lightgreen;
 
   &:hover {
     border: dotted darkorange 2px;
   }
+}
+
+.v-data-table
+  > .v-data-table__wrapper
+  tbody
+  tr.v-data-table__expanded__content {
+  box-shadow: none !important;
 }

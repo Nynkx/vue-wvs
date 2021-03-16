@@ -230,23 +230,29 @@ export default {
             ctrl.setAttribute("type", "checkbox");
             break;
           case "wvs-video":
-            ctrl = document.createElement("button");
-            ctrl.classList.add("v-btn");
-            var icon = document.createElement("i");
-            icon.classList.add(
-              "v-icon",
-              "mdi",
-              "mdi-draw",
-              "deep-orange--text"
-            );
-            icon.style.transform = `scale(${Math.max(
-              controlRect.height,
-              controlRect.width
-            ) * 0.03})`;
+            console.log(controlInfo.showSigner);
+            if (controlInfo.showSigner) {
+              ctrl = document.createElement("button");
+              ctrl.classList.add("v-btn");
+              var icon = document.createElement("i");
+              icon.classList.add(
+                "v-icon",
+                "mdi",
+                "mdi-draw",
+                "deep-orange--text"
+              );
+              icon.style.transform = `scale(${Math.max(
+                controlRect.height,
+                controlRect.width
+              ) * 0.03})`;
 
-            ctrl.setAttribute("data-signer", controlInfo.signer);
-            ctrl.appendChild(icon);
-            ctrl.addEventListener("click", this.showRecorder);
+              ctrl.setAttribute("data-signer", controlInfo.signer);
+              ctrl.appendChild(icon);
+              ctrl.addEventListener("click", this.showRecorder);
+            } else {
+              ctrl = document.createElement("div");
+              ctrl.classList.add("control-item--disabled");
+            }
 
             break;
           default:

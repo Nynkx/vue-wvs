@@ -1,26 +1,15 @@
 <template>
   <div>
-    <div v-for="(signer, idx) in items" :key="idx" x-small>
-      <!-- <v-chip x-small> {{ signer.signer }} </v-chip> -->
-
-      <v-badge
-        :content="tryParseInt(signer.sequence)"
-        color="green"
-        inline
-        class="xs-2"
-      >
-        <v-btn class="ma-2" depressed>{{ signer.signer }} </v-btn>
-      </v-badge>
-    </div>
+    <v-stepper vertical elevation="0">
+      <h3 class="pt-2 pl-2">Signers Order:</h3>
+      <template v-for="(signer, idx) in items">
+        <v-stepper-step :step="idx" :key="signer.name">
+          {{ signer.signer }}
+        </v-stepper-step>
+        <v-stepper-content :key="idx" :step="idx"></v-stepper-content>
+      </template>
+    </v-stepper>
   </div>
-
-  <!-- <v-timeline align-top dense>
-    <v-timeline-item v-for="(signer, idx) in items" :key="idx" small :color="cyan">
-      <v-badge :content="signer.sequence">
-        {{ signer.signer }}
-      </v-badge>
-    </v-timeline-item>
-  </v-timeline> -->
 </template>
 
 <script>
@@ -54,8 +43,10 @@ export default {
           "9th",
           "10th",
         ];
-        return stringNumberArray[number];
-      } catch (e) {}
+        return stringNumberArray[number + 1];
+      } catch (e) {
+        throw e;
+      }
     },
   },
 };

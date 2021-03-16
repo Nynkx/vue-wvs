@@ -27,6 +27,7 @@
         >
         </v-text-field>
       </v-card-title>
+
       <v-card-text>
         <v-data-table
           :items="displayDocuments"
@@ -35,6 +36,9 @@
           disable-pagination
           :hide-default-footer="true"
           style="position: relative;"
+          item-key="name"
+          :expanded.sync="expanded"
+          show-expand
         >
           <template slot="body.append">
             <v-overlay :value="isLoading" absolute color="#FFFFFF"> </v-overlay>
@@ -44,6 +48,9 @@
               item.name
             }}</router-link>
           </template>
+          <!-- <template v-slot:[`item.signers`]="{ item }">
+            <SignerOrder :items="getSignerList(item.metaInfo)"> </SignerOrder>
+          </template> -->
           <template v-slot:[`item.actions`]="props">
             <v-btn
               icon
@@ -53,6 +60,15 @@
             >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
+          </template>
+
+          <template v-slot:expanded-item="{ headers, item }">
+            <td colspan="2" class="pa-1">
+              <SignerOrder :items="getSignerList(item.metaInfo)"> </SignerOrder>
+            </td>
+            <td :colspan="headers.length - 2">
+              a
+            </td>
           </template>
         </v-data-table>
         <v-card-actions>
@@ -83,21 +99,28 @@
 import { mapGetters, mapActions } from "vuex";
 import ConfirmDialog from "../ConfirmDialog/ConfirmDialog.vue";
 import SnackBar from "../SnackBar/SnackBar.vue";
+import SignerOrder from "./SignerOrder";
 
 export default {
   name: "DocumentsList",
   components: {
     ConfirmDialog,
     SnackBar,
+    SignerOrder,
   },
   data: function() {
     return {
+      expanded: [],
       searchQuery: "",
       headers: [
         {
           text: "Name",
           value: "name",
         },
+        // {
+        //   text: "Signers",
+        //   value: "signers",
+        // },
         {
           text: "Size",
           value: "size",
@@ -188,6 +211,13 @@ export default {
           this.$refs.snackbar.open("Cannot Delete Document!", false);
         }
       }
+    },
+
+    getSignerList: function(metaInfo) {
+      let controls = metaInfo.controls;
+      return controls
+        .filter((control) => control.type === "wvs-video")
+        .sort((ctrl1, ctrl2) => ctrl1.sequence - ctrl2.sequence);
     },
 
     handlePageChange(pageNo) {
