@@ -1,14 +1,23 @@
 import axios from "axios";
+import AuthHelper from "@/helpers/auth.helper";
 
 const documents = axios.create({
   baseURL: "/api/v1/",
 });
 
+const API_KEY = "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF";
+
 documents.interceptors.request.use(
   (config) => {
+    const token = AuthHelper.getToken();
+
+    if (token) {
+      request.header["Authorization"] = `Bearer ${token}`;
+    }
+
     config.params = {
       ...config.params,
-      key: "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF",
+      key: token,
     };
 
     return config;
@@ -26,8 +35,15 @@ documents.interceptors.response.use(
     const { status, data } = err.response;
 
     console.error(status);
-
-    return Promise.reject(err);
+    switch (status) {
+      case 401:
+        AuthHelper.removeToken();
+        alert("Unauthorized");
+        window.location = "login";
+        break;
+      default:
+        return Promise.reject(err);
+    }
   }
 );
 
