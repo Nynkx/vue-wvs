@@ -2,19 +2,25 @@
   <div class="login-wrapper bg-gradient--megatron">
     <div class="login-container">
       <div class="login-header">
-        <FoxitLogo class="logo"></FoxitLogo>
+        <FoxitIcon
+          style="width: 70px; height: 70px; margin-right: 10px"
+        ></FoxitIcon>
       </div>
       <div class="login-content py-2">
         <v-btn
-          class="text-light bg-gradient--sc"
+          class="text-light"
           @click="handleLogin"
           rounded
           large
+          outlined
+          style="min-width: 50%"
         >
-          <FoxitIcon
-            style="width: 24px; height: 24px; margin-right: 10px"
-          ></FoxitIcon>
-          Login With Foxit Account
+          <!-- <FoxitIcon style="width: 24px; height: 24px; margin-right: 10px"></FoxitIcon> -->
+          Login With
+          <FoxitLogo
+            class="logo"
+            style="height: 24px; margin-right: 10px"
+          ></FoxitLogo>
         </v-btn>
       </div>
     </div>
@@ -137,35 +143,30 @@ export default {
   ); /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(
     to right,
-    #f83600,
-    #fe8c00
+    #ffffff,
+    #ffffff
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 .bg-gradient--megatron {
-  background-image: linear-gradient(
-    16.5deg,
-    rgba(203, 189, 240, 1) 24.7%,
-    rgba(253, 184, 169, 1) 68.9%
-  );
-  // background: #c6ffdd; /* fallback for old browsers */
-  // background: -webkit-linear-gradient(
-  //   to top,
-  //   #e5797d,
-  //   #fbd786,
-  //   #ddffdd
-  // ); /* Chrome 10-25, Safari 5.1-6 */
-  // background: linear-gradient(
-  //   to top,
-  //   #e5797d,
-  //   #fbd786,
-  //   #ddffdd
-  // ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #06d6e0; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to top,
+    #20c0e2,
+    #fbd786,
+    #ddffdd
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to top,
+    #06d6e0,
+    #03d8de,
+    #03d8de
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 @media only screen and (min-width: 320px) and (max-width: 1220px) {
   .login-container {
-    flex: 1 1 100%;
+    flex: 2 1 100%;
     height: 100vh;
     align-items: stretch;
 
