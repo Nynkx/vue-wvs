@@ -46,7 +46,19 @@ module.exports = {
         .use("addon-loader")
         .loader("@foxitsoftware/addon-loader")
         .end();
+
       config.externals(["UIExtension", "PDFViewCtrl"]);
+
+      const svgRule = config.module.rule("svg");
+
+      svgRule.uses.clear();
+
+      svgRule
+        .use("babel-loader")
+        .loader("babel-loader")
+        .end()
+        .use("vue-svg-loader")
+        .loader("vue-svg-loader");
     },
   configureWebpack: {
     plugins: [

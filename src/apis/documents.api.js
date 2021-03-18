@@ -5,21 +5,13 @@ const documents = axios.create({
   baseURL: "/api/v1/",
 });
 
-const API_KEY = "6LdMKbcZAAAAAImBVJWOopl-dOyLq0RCVhAFHkHF";
-
 documents.interceptors.request.use(
   (config) => {
     const token = AuthHelper.getToken();
-
     if (token) {
-      request.header["Authorization"] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
-
-    config.params = {
-      ...config.params,
-      key: token,
-    };
-
+    console.log(config);
     return config;
   },
   (err) => {
@@ -32,6 +24,7 @@ documents.interceptors.response.use(
     return response;
   },
   (err) => {
+    console.error(err);
     const { status, data } = err.response;
 
     console.error(status);

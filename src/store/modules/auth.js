@@ -1,15 +1,17 @@
 import auth from "@/apis/auth.api";
-import AuthHelper from "@/helpers/auth.helper";
+import { AuthHelper } from "@/helpers/";
 
 let token = AuthHelper.getToken();
 
 const state = {
-  isLoggedIn: token !== null,
+  loading: false,
+  isLoggedIn: false,
   token: token,
   error: null,
 };
 
 const mutations = {
+  setLoading: (state, loading) => (state.loading = loading),
   setToken: (state, token) => {
     state.token = token;
   },
@@ -17,6 +19,7 @@ const mutations = {
 };
 
 const getters = {
+  isLoading: (state) => state.loading,
   isLoggedIn: (state) => state.isLoggedIn,
   token: (state) => state.token,
 };
@@ -32,16 +35,20 @@ const actions = {
       },
       data: formData,
     };
+    commit("setIsLoggedIn", false);
     auth(options)
       .then((res) => {
-        const { token, user } = response.data;
+        const { token, user } = res.data;
+        commit("setLoading", false);
         commit("setIsLoggedIn", true);
         commit("setToken", token);
+        AuthHelper.setToken(token.token);
         console.info(token.token, user);
       })
       .catch((ex) => {
         commit("setLoading", false);
-        localStorage.removeItem("token");
+        commit("setIsLoggedIn", false);
+        AuthHelper.removeToken();
         console.error(ex);
       });
   },

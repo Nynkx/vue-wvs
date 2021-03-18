@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
-import AuthHelper from "../helpers/auth.helper";
+import { AuthHelper } from "../helpers";
 
 Vue.use(VueRouter);
 const Login = () => import("@/views/Login");
@@ -21,6 +21,11 @@ const routes = [
         //name: "Documents",
         component: Documents,
         children: [
+          {
+            path: "login",
+            name: "Login",
+            component: Login,
+          },
           {
             path: "sign/:id",
             name: "Document",
@@ -61,12 +66,15 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   const isAuthed = AuthHelper.getToken();
 
-  if (to.name === "Login" && !isAuthed) {
-    next();
-  } else if (!isAuthed) {
-    console.log("not Logged in!");
-    next({ name: "Login" });
-  } else next();
+  if (to.name !== "Login" && !isAuthed) next({ name: "Login" });
+  next();
+
+  // if (to.name === "Login" && !isAuthed) {
+  //   next();
+  // } else if (!isAuthed) {
+  //   console.log("not Logged in!");
+  //   next({ name: "Login" });
+  // } else next();
 });
 
 export default router;
