@@ -92,7 +92,8 @@ export default {
     return {
       width: 1,
       height: 1,
-      chunks: [],
+      frames: [],
+      audioBlobs: [],
       pad: null,
       canvasInterval: "",
       countdown: null,
@@ -118,7 +119,7 @@ export default {
     },
   },
   created: function() {
-    this.computeCanvasSize();
+    // this.computeCanvasSize();
     window.onresize = this.computeCanvasSize;
   },
   mounted: function() {
@@ -136,6 +137,10 @@ export default {
     this.pad.off();
   },
   beforeDestroy: function() {
+    this.$refs.recording.removeEventListener(
+      "loadedmetadata",
+      this.onCameraMetadata
+    );
     this.recording.srcObject.getTracks().map((track) => track.stop());
     clearInterval(this.canvasInterval);
   },
@@ -151,6 +156,11 @@ export default {
       });
       recording.srcObject = stream;
 
+      this.$refs.recording.addEventListener(
+        "loadedmetadata",
+        this.onCameraMetadata
+      );
+
       // init audio context
       try {
         let AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -158,7 +168,7 @@ export default {
         console.log(context);
         this.audioContext = context;
       } catch (e) {
-        alert(e);
+        console.error("Init audio context: ", e);
       }
 
       //init media stream
@@ -166,6 +176,17 @@ export default {
 
       this.isStreamLoaded = true;
     },
+
+    onCameraMetadata: function() {
+      console.log("Camera metadata available");
+      this.videoSize = {
+        width: this.recording.videoWidth,
+        height: this.recording.videoHeight,
+      };
+      console.log("Video Size ", JSON.stringify(this.videoSize, null, 2));
+      this.computeCanvasSize();
+    },
+
     handleStream: function() {
       let context = this.videoCanvas.getContext("2d");
       let video = this.recording;
@@ -211,11 +232,11 @@ export default {
         //* Start recording when conditions met
         if (this.isRecording) {
           this.takeCanvasSnapShot().then((blob) => {
-            var image = {
+            var frame = {
               name: `img${("000" + this.frameIndex++).slice(-4)}.jpeg`,
               blob: blob,
             };
-            this.chunks.push(image);
+            this.frames.push(frame);
           });
         }
         //*------------------------------------
@@ -230,6 +251,39 @@ export default {
       return new Promise((resolve, reject) => {
         this.signCanvas.toBlob(resolve, "image/jpeg");
       });
+    },
+    initMediaRecorder() {
+      try {
+        const options = {
+          mimiType: "audio/wav",
+        };
+
+        let audioStream = new MediaStream([
+          ...this.mediaStream.getAudioTracks(),
+        ]);
+
+        this.audioRecorder = new window.MediaRecorder(audioStream, options);
+
+        this.audioRecorder.ondataavailable = (e) => {
+          this.audioBlobs = e.data;
+        };
+
+        this.audioRecorder.onstop = () => {
+          this.handleRecordedData(
+            this.frames,
+            this.audioBlobs,
+            this.pad.toDataURL()
+          );
+        };
+
+        this.audioRecorder.start();
+
+        this.useMediaRecorder = true;
+
+        console.log("Audio Recorder: ", this.audioRecorder);
+      } catch (e) {
+        console.error("Init MediaRecorder error: ", e);
+      }
     },
     initAudioRecorder() {
       // require audioContext
@@ -248,7 +302,11 @@ export default {
         this.audioRecorder = recorder;
         this.audioRecorder.record();
       } catch (e) {
-        console.log("init audio recorder: ", e);
+        // init and start media recorder here if the library not work
+        console.log("Cannot init audio recorder !");
+        console.error("Detail error: ", e);
+        console.log("Firing the media recorder...");
+        this.initMediaRecorder();
       }
     },
     handleRecord: function(event) {
@@ -260,7 +318,6 @@ export default {
         `Recording will be finished automatically after ${this.remainingTime}s`
       );
 
-   
       this.initAudioRecorder();
       this.isRecording = true;
       this.pad.on();
@@ -282,24 +339,33 @@ export default {
     handleStop: async function() {
       if (!this.isRecording) return;
 
+      this.isRecording = false;
+      this.audioRecorder.stop();
+
       // this.turnOffCamera();
       clearInterval(this.countdown);
 
+      if (!this.useMediaRecorder) {
+        //send blobs to server
+        let audioBlobs = await this.getAudioBlobs();
+        let imageBlob = this.pad.toDataURL();
 
-      // send blobs to server
-      let recordedBlobs = await this.getAudioBlobs();
-      let imageBlob = this.pad.toDataURL();
+        console.log(audioBlobs);
 
+        this.handleRecordedData(this.frames, audioBlobs, imageBlob);
+      }
+    },
+    handleRecordedData: function(frames, audio, image) {
       var recordedData = {
-        frames: this.chunks,
-        audio: recordedBlobs,
-        image: imageBlob,
+        frames,
+        audio,
+        image,
       };
+
+      console.log(recordedData);
 
       this.$emit("data-available", recordedData);
       this.$emit("close");
-
-      this.isRecording = false;
     },
     handleCancel: function() {
       this.$emit("close");
@@ -313,19 +379,80 @@ export default {
       let tracks = stream.getTracks();
       tracks.map((track) => track.stop());
     },
+
     computeCanvasSize: function() {
       let windowSize = { w: window.innerWidth, h: window.innerHeight };
+      // let isPortrait = windowSize.w < windowSize.h;
 
-      if (windowSize.w <= 1024 && windowSize.w < windowSize.h) {
-        //* log
-        console.log("mobile");
+      // if (windowSize.w <= 1024 && isPortrait) {
+      //   //* log
+      //   console.log("mobile");
 
-        this.width = windowSize.w;
-        this.height = (windowSize.h * 10) / 19;
+      //   this.width = windowSize.w;
+      //   this.height = (windowSize.h * 3) / 4;
+      // } else {
+      //   this.width = windowSize.w;
+      //   this.height = windowSize.h;
+      // }
+
+      let videoBox = {
+        left: 0,
+        top: 0,
+        right: this.videoSize.width,
+        bottom: this.videoSize.height,
+      };
+      let containerBox = {
+        left: 0,
+        top: 0,
+        right: windowSize.w,
+        bottom: windowSize.h,
+      };
+
+      const letterBox = this.letterBoxRect(videoBox, containerBox);
+      console.log("LetterBox>>", JSON.stringify(letterBox, null, 2));
+      this.width = letterBox.width;
+      this.height = letterBox.height;
+    },
+
+    /////////////////////////////////////////////////
+    // Utilities
+    MulDiv(number, numerator, denominator) {
+      var ret = number;
+      ret *= numerator;
+      ret /= denominator;
+      return ret;
+    },
+
+    letterBoxRect(rcSrc, rcDest) {
+      var rcResult = {};
+      var iSrcWidth = Math.abs(rcSrc.right - rcSrc.left);
+      var iSrcHeight = Math.abs(rcSrc.bottom - rcSrc.top);
+
+      var iDstWidth = Math.abs(rcDest.right - rcDest.left);
+      var iDstHeight = Math.abs(rcDest.bottom - rcDest.top);
+
+      var iDstLBWidth;
+      var iDstLBHeight;
+
+      if (this.MulDiv(iSrcWidth, iDstHeight, iSrcHeight) <= iDstWidth) {
+        // Column letter boxing ("pillar box")
+        iDstLBWidth = this.MulDiv(iDstHeight, iSrcWidth, iSrcHeight);
+        iDstLBHeight = iDstHeight;
       } else {
-        this.width = windowSize.w * 0.7;
-        this.height = windowSize.h;
+        // Row letter boxing.
+        iDstLBWidth = iDstWidth;
+        iDstLBHeight = this.MulDiv(iDstWidth, iSrcHeight, iSrcWidth);
       }
+
+      var left = rcDest.left + (iDstWidth - iDstLBWidth) / 2;
+      var top = rcDest.top + (iDstHeight - iDstLBHeight) / 2;
+      rcResult.left = left;
+      rcResult.top = top;
+      rcResult.right = left + iDstLBWidth;
+      rcResult.bottom = top + iDstLBHeight;
+      rcResult.width = Math.abs(rcResult.right - rcResult.left);
+      rcResult.height = Math.abs(rcResult.bottom - rcResult.top);
+      return rcResult;
     },
   },
 };

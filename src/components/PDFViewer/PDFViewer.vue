@@ -1,37 +1,81 @@
 <template>
   <div class="viewer-wrapper">
-    <v-app-bar style="z-index:99" fixed hide-on-scroll scroll-target="#viewer">
-      <v-toolbar-title>{{ title }}</v-toolbar-title>
+    <v-app-bar style="z-index: 99" fixed hide-on-scroll scroll-target="#viewer">
+      <v-toolbar-title>
+        <v-btn icon color="orange" :to="`/documents/`">
+          <v-icon>mdi-arrow-left-circle</v-icon>
+        </v-btn>
+        <span style="color: #777">
+          {{ title }}
+        </span>
+      </v-toolbar-title>
 
       <v-spacer></v-spacer>
 
       <v-toolbar-items>
-        <v-btn
+        <!-- <v-btn
           text
-          color="error"
-          :disabled="!this.isDocModified"
+          :disabled="!this.isDownloadable && !this.isDocModified"
           @click="downloadDoc"
         >
           <v-icon class="px-1">mdi-download</v-icon>
-          (Dev) Download Document
-        </v-btn>
-        <v-btn text color="success" :disabled="!this.isDocModified">
+          Download
+        </v-btn> -->
+        <v-btn
+          text
+          color="success"
+          :disabled="!this.isDocModified"
+          @click="onSubmitDocument"
+        >
           <v-icon class="px-1">mdi-upload</v-icon>
           Submit
         </v-btn>
 
-        <v-btn
+        <!-- <v-btn
           text
-          color="primary"
+          color="error"
           :disabled="!this.isDocModified"
           @click="handelResetDocument"
         >
           <v-icon class="px-1">mdi-reload</v-icon>
           Reset
-        </v-btn>
+        </v-btn> -->
       </v-toolbar-items>
+      <v-menu bottom left>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item-group>
+            <v-list-item
+              :disabled="!this.isDownloadable && !this.isDocModified"
+              @click="downloadDoc"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-download</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Download</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              :disabled="!this.isDocModified"
+              @click="handelResetDocument"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-reload</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Reset</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-menu>
     </v-app-bar>
-    <v-overlay :value="this.isDocLoading" style="z-index:99">
+    <v-overlay :value="this.isDocLoading" style="z-index: 99">
       <v-progress-circular indeterminate size="50"></v-progress-circular>
     </v-overlay>
 
@@ -42,6 +86,12 @@
       @close="toggleRecorder"
       @data-available="handleRecordedData"
     ></signature-recorder>
+    <OTPDialog
+      ref="otpDialog"
+      @sendOTP="onSendOTPCode"
+      @approve="onVerifyOTPCode"
+      @cancel="onCancelOTP"
+    ></OTPDialog>
   </div>
 </template>
 
@@ -57,11 +107,16 @@ import {
 
 import SignatureRecorder from "../SignatureRecorder/SignatureRecorder.vue";
 
+import { licenseSN, licenseKey } from "@/license-key";
+
+import OTPDialog from "./OTPDialog.vue";
+
 export default {
   name: "PDFViewer",
   computed: {},
   components: {
     "signature-recorder": SignatureRecorder,
+    OTPDialog,
   },
   data: function() {
     return {
@@ -72,6 +127,9 @@ export default {
       controls: [],
       selectedControl: null,
       annotID: "",
+      currentSigner: undefined,
+
+      ticket: null, // Signer who don't have an account and not logged in
     };
   },
   computed: {
@@ -83,6 +141,10 @@ export default {
       "signatureVideo",
       "isDocModified",
     ]),
+
+    isDownloadable() {
+      return "complete" === (this.docInfo || {}).status;
+    },
   },
   updated: function() {
     if (!this.recorderShow) {
@@ -91,12 +153,24 @@ export default {
   },
   mounted: async function() {
     try {
+      this.setDocModifyState(false);
       this.initPDFViewer();
 
       this.docId = this.$route.params.id;
+      // console.log("Ticket>>>", this.$route.query.tiket);
 
       await this.fetchDocInfo(this.docId);
       this.title = this.docInfo.name;
+      this.currentSigner = this.getSigner(
+        this.docInfo?.metaInfo?.controls || []
+      );
+
+      const activeVideoControl = this.getCurrentActiveVideoControl(
+        this.docInfo?.metaInfo?.controls || []
+      );
+      if (activeVideoControl.otpVerification) {
+        this.showOTPInputDialog();
+      }
 
       console.log("document info vvv");
       console.log(this.docInfo);
@@ -136,7 +210,12 @@ export default {
       "startLoading",
       "stopLoading",
       "setDocModifyState",
+      // Temporary methods
+      "sendOTPCode",
+      "verifyOTPCode",
     ]),
+
+    ...mapActions("documents", ["submitDocument"]),
 
     base64ToArrayBuffer: function(base64) {
       var binary_string = window.atob(base64);
@@ -165,9 +244,15 @@ export default {
       var container = document.querySelector("#viewer");
 
       this.pdfViewer = new PDFViewer({
-        libPath: "../foxit-lib",
+        // libPath: "../foxit-lib",
+        libPath:
+          process.env.NODE_ENV === "production"
+            ? "../foxit-lib"
+            : "../../foxit-lib",
         jr: {
           readyWorker: window.readyWorker,
+          // licenseSN: licenseSN,
+          // licenseKey: licenseKey,
         },
         customs: {
           ScrollWrap: class CustomScrollWrap extends ScrollWrap {
@@ -205,6 +290,8 @@ export default {
       var viewerScale = this.pdfViewer.getPDFPageRender(0).getScale();
       this.setBaseScale(viewerScale);
 
+      var currentSigner = this.currentSigner;
+
       for (var controlInfo of controlsMetaInfo) {
         var page = this.pdfViewer.getPDFPageRender(controlInfo.pageNo);
         var pageDOM = page.$ui[0];
@@ -224,14 +311,22 @@ export default {
             ctrl.setAttribute("type", "text");
             ctrl.setAttribute("autocomplete", "off");
             ctrl.style["font-size"] = controlRect.height - 3 + "px";
+
+            // Skip (do not add html element) if it's not assined a signer OR assigned with current signer
+            if (!controlInfo.signer || controlInfo.signer === currentSigner)
+              continue;
             break;
           case "wvs-check":
             ctrl = document.createElement("input");
             ctrl.setAttribute("type", "checkbox");
+            // Skip (do not add html element) if it's not assined a signer OR assigned with current signer
+            if (!controlInfo.signer || controlInfo.signer === currentSigner)
+              continue;
             break;
+          // if (controlInfo.signer) break;
+          // else continue;
           case "wvs-video":
-            console.log(controlInfo.showSigner);
-            if (controlInfo.showSigner) {
+            if (controlInfo.signer === currentSigner) {
               ctrl = document.createElement("button");
               ctrl.classList.add("v-btn");
               var icon = document.createElement("i");
@@ -241,7 +336,7 @@ export default {
                 "mdi-draw",
                 "deep-orange--text"
               );
-              icon.style.transform = `scale(${Math.max(
+              icon.style.transform = `scale(${Math.min(
                 controlRect.height,
                 controlRect.width
               ) * 0.03})`;
@@ -258,15 +353,21 @@ export default {
           default:
             return;
         }
+
+        // Masked if control not belongs to current signer
+        if (controlInfo.signer && controlInfo.signer !== currentSigner) {
+          ctrl = document.createElement("div");
+          ctrl.classList.add("control-item--disabled");
+        }
         ctrl.classList.add("control-item");
 
         ctrl.id = controlInfo.id;
-
         ctrl.style.width = controlRect.width + "px";
         ctrl.style.height = controlRect.height + "px";
         ctrl.style.top = controlRect.top + "px";
         ctrl.style.left = controlRect.left + "px";
 
+        ctrl.setAttribute("name", controlInfo.name);
         ctrl.setAttribute("data-x", controlInfo.deviceRect.left);
         ctrl.setAttribute("data-y", controlInfo.deviceRect.top);
         ctrl.setAttribute("data-w", controlInfo.deviceRect.width);
@@ -367,6 +468,7 @@ export default {
     },
     insertSignature: function(signImg, insertRect, pageIndex, scale) {
       let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
+      let selectedControl = this.selectedControl;
       pdfDoc.getPageByIndex(pageIndex).then((page) => {
         let deviceRect = page.reverseDeviceRect(insertRect, scale);
         console.log(deviceRect);
@@ -377,7 +479,14 @@ export default {
             right: deviceRect.right,
             bottom: deviceRect.bottom,
           })
-          .then()
+          .then(() => {
+            // TODO: Remove formfield control
+            const fieldName = selectedControl.getAttribute("name");
+
+            console.debug(selectedControl);
+            console.debug(`Remove control: ${fieldName}`);
+            this.removeFormField(pdfDoc, fieldName);
+          })
           .catch((error) => console.error(error));
       });
     },
@@ -392,6 +501,7 @@ export default {
       let reader = new FileReader();
       reader.onload = (event) => {
         let buffer = new Uint8Array(event.target.result);
+
         pdfDoc.getPageByIndex(pageIndex).then((page) => {
           let deviceRect = page.reverseDeviceRect(insertRect, scale);
           console.log(deviceRect);
@@ -405,7 +515,7 @@ export default {
                 bottom: deviceRect.bottom,
               },
               opacity: 0.5,
-              contentType: "video/mpeg",
+              contentType: "video/mp4",
               multiBuffer: buffer,
               fileName: `svs-${new Date().getTime()}.mp4`,
             })
@@ -414,6 +524,8 @@ export default {
               this.annotID = annots[0].id;
               console.log(this.annotID);
               this.stopLoading();
+
+              console.log(document.querySelector(".player"));
             })
             .catch((error) => console.error(error));
         });
@@ -439,6 +551,117 @@ export default {
           document.body.appendChild(a);
           a.click();
         });
+    },
+
+    onSubmitDocument: async function() {
+      try {
+        let pdfDoc = this.pdfViewer.getCurrentPDFDoc();
+        let buffers = [];
+        const { _id: docId, metaInfo, name: docName } = this.docInfo;
+        const { controls = [] } = metaInfo;
+
+        this.markedAsSigned(controls, this.currentSigner);
+        var nextSigner = this.getSigner(controls);
+
+        const bufferSize = await pdfDoc.getStream(function({
+          arrayBuffer,
+          offset,
+          size,
+        }) {
+          buffers.push(arrayBuffer);
+        },
+        1);
+
+        var fileBlob = new Blob(buffers, {
+          type: "application/pdf",
+        });
+
+        const signer = this.currentSigner;
+        const status = nextSigner ? "in-progress" : "complete";
+
+        var formData = {};
+        formData.id = docId;
+        formData.signer = signer;
+        formData.nextSigner = nextSigner;
+        formData.status = status;
+        formData.metaInfo = JSON.stringify({
+          controls,
+        });
+        formData.name = docName;
+        formData.size = bufferSize;
+        formData.type = "application/pdf";
+        formData.file = fileBlob;
+        this.submitDocument(formData).then(() => {
+          this.$router.push({ name: "Documents" }); // back to document list
+        });
+      } catch (ex) {
+        console.error(ex);
+      }
+    },
+
+    showOTPInputDialog: function(isShow = true) {
+      return isShow
+        ? this.$refs.otpDialog.open()
+        : this.$refs.otpDialog.close();
+    },
+
+    onSendOTPCode: async function() {
+      console.log(">>>> OTP send event here!");
+      if (process.env.NODE_ENV === "production") {
+        await this.sendOTPCode({
+          id: this.docId,
+          signer: activeVideoControl.signer,
+          phone: activeVideoControl.phoneNumber,
+        });
+      }
+    },
+
+    onVerifyOTPCode: async function(code) {
+      console.log(code);
+      const verifyResult = await this.verifyOTPCode({
+        id: this.docId,
+        code,
+      });
+
+      if (verifyResult) this.showOTPInputDialog(false);
+    },
+
+    onCancelOTP: function() {
+      this.$router.push({ name: "Documents" });
+    },
+
+    ///////////////////////////////////////////////
+    // Helpers
+    removeFormField: async function(pdfDoc, fieldName) {
+      await pdfDoc.loadPDFForm();
+      await pdfDoc.getAnnots();
+      var form = pdfDoc.getPDFForm();
+      await form.removeField(fieldName);
+    },
+
+    getSigner: function(controls) {
+      return this.getCurrentActiveVideoControl(controls)?.signer;
+    },
+
+    getCurrentActiveVideoControl: (controls) => {
+      var videoSortedCollection = (controls || [])
+        .filter((item) => item.type === "wvs-video")
+        .sort((a, b) => a.sequence - b.sequence);
+      for (var control of videoSortedCollection) {
+        if (!control.signed) {
+          return control;
+        }
+      }
+      return null;
+    },
+
+    markedAsSigned: function(controls, signer) {
+      for (var control of controls) {
+        if ("wvs-video" === control.type && control.signer === signer) {
+          control.signed = true;
+          break;
+        }
+      }
     },
   },
 };

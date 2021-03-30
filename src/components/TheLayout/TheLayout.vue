@@ -6,11 +6,13 @@
 
 <script>
 import TheContent from "../TheContent/TheContent.vue";
+import TheHeader from "../TheHeader/TheHeader";
 
 export default {
   name: "Thelayout",
   components: {
     TheContent,
+    TheHeader,
   },
 };
 </script>

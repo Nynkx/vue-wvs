@@ -39,11 +39,6 @@ const routes = [
         ],
       },
       {
-        path: "/login",
-        name: "Login",
-        component: Login,
-      },
-      {
         path: "",
         redirect: "/documents",
       },
@@ -63,18 +58,13 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const isAuthed = AuthHelper.getToken();
-
-  if (to.name !== "Login" && !isAuthed) next({ name: "Login" });
-  next();
-
-  // if (to.name === "Login" && !isAuthed) {
-  //   next();
-  // } else if (!isAuthed) {
-  //   console.log("not Logged in!");
-  //   next({ name: "Login" });
-  // } else next();
-});
+if (process.env.NODE_ENV === "production") {
+  router.beforeEach((to, from, next) => {
+    const isAuthed = AuthHelper.getToken();
+    console.log("isAuthed", isAuthed);
+    if (to.name !== "Login" && !isAuthed) next({ name: "Login" });
+    next();
+  });
+}
 
 export default router;

@@ -10,15 +10,14 @@ const state = {
   totalPages: 1,
 
   isDocDeleted: false,
+  isDocSubmitted: false,
 
   docSearchName: "",
+  statusFilter: ["new", "in-progress", "complete"],
+  mailSent: false,
 };
 
 const mutations = {
-  // DOCUMENT_GET: (state, documents) => {
-  //   state.documents = documents;
-  // },
-
   setLoading: (state, loading) => {
     state.loading = loading;
   },
@@ -47,9 +46,20 @@ const mutations = {
     state.isDocDeleted = status;
   },
 
+  setDocSubmitted: (state, status) => {
+    state.isDocSubmitted = status;
+  },
+
   setDocSearchName: (state, searchName) => {
     state.docSearchName = searchName;
   },
+
+  setDocStatusFilter: (state, arrStatus) => {
+    state.statusFilter =
+      arrStatus.length == 0 ? ["new", "in-progress", "complete"] : arrStatus;
+  },
+
+  setMailSent: (state, mailSent) => (state.mailSent = mailSent),
 };
 
 const getters = {
@@ -60,7 +70,10 @@ const getters = {
   itemsPerPage: (state) => state.itemsPerPage,
   totalPages: (state) => state.totalPages,
   isDocDeleted: (state) => state.isDocDeleted,
+  isDocSubmitted: (state) => state.isDocSubmitted,
   docSearchName: (state) => state.docSearchName,
+  statusFilter: (state) => state.statusFilter,
+  mailSent: (state) => state.mailSent,
 };
 
 const actions = {
@@ -69,9 +82,14 @@ const actions = {
     const params = {
       pageNo: page || state.currentPage,
       pageSize: state.itemsPerPage,
-      name: state.docSearchName,
+      ...(state.docSearchName !== "" && { name: state.docSearchName }),
+      ...(state.statusFilter.length == 0 && {
+        status: state.statusFilter,
+      }),
+      status: state.statusFilter,
     };
-    console.log(state.docSearchName);
+    console.log(params);
+
     documentsAPI
       .get("/documents", { params })
       .then((response) => {
@@ -88,10 +106,14 @@ const actions = {
     dispatch("fetchDocuments", 1);
   },
 
+  filterDocuments({ commit, dispatch }, arrStatus) {
+    commit("setDocStatusFilter", arrStatus);
+    dispatch("fetchDocuments", 1);
+  },
+
   async deleteDocument({ commit, state, dispatch }, docID) {
     try {
       let response = await documentsAPI.delete(`/documents/${docID}`);
-      // console.log(response);
       commit("setDocDeleted", true);
       dispatch("fetchDocuments", state.currentPage);
     } catch (ex) {
@@ -100,6 +122,74 @@ const actions = {
     }
 
     console.log(docID);
+  },
+  submitDocument: async ({ commit }, payload) => {
+    try {
+      const { id } = payload;
+
+      var formData = new FormData();
+      for (var entry in payload) {
+        formData.append(entry, payload[entry]);
+      }
+
+      var res = await documentsAPI.put(`documents/${id}`, formData, {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      });
+      console.log("submit status: " + res.status);
+
+      commit("setDocSubmitted", true);
+    } catch (ex) {
+      commit("setDocSubmitted", false);
+      console.error(ex);
+    }
+  },
+
+  sendMail: async ({ commit }, formData) => {
+    try {
+      commit("setLoading", true);
+      commit("setMailSent", false);
+      const { id } = formData;
+      const params = new URLSearchParams();
+      for (var entry in formData) {
+        params.append(entry, formData[entry]);
+      }
+      var res = await documentsAPI.post(`documents/mail-to/${id}`, params, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
+      console.log("submit status: " + res.status);
+      commit("setLoading", false);
+      commit("setMailSent", true);
+    } catch (ex) {
+      console.error(ex);
+      commit("setLoading", false);
+    }
+  },
+
+  downloadDocument: async ({ commit }, formData) => {
+    try {
+      commit("setLoading", true);
+      const { id } = formData;
+      // const options = {
+      //   url: `documents/download/${id}`,
+      //   responseType: "blob",
+      // };
+      // var res = await documentsAPI(options);
+
+      var res = await documentsAPI.get(`documents/download/${id}`, {
+        responseType: "blob",
+      });
+      console.log("submit status: " + res.status);
+      commit("setLoading", false);
+      return res.data;
+    } catch (ex) {
+      console.error(ex);
+      commit("setLoading", false);
+    }
+    return null;
   },
 };
 

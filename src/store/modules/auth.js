@@ -1,5 +1,5 @@
 import auth from "@/apis/auth.api";
-import { AuthHelper } from "@/helpers/";
+import { AuthHelper, StorageHelper} from "@/helpers/";
 
 let token = AuthHelper.getToken();
 
@@ -52,6 +52,12 @@ const actions = {
         console.error(ex);
       });
   },
+  logout: function({ commit }) {
+    console.log('logout')
+    StorageHelper.removeItem("state");
+    AuthHelper.removeToken();
+    commit("setIsLoggedIn", false);
+  }
 };
 
 export default {

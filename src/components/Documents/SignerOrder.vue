@@ -6,10 +6,10 @@
       <v-badge
         :content="tryParseInt(signer.sequence)"
         color="green"
-        inline
-        class="xs-2"
+        class="ma-1"
+        overlap
       >
-        <v-btn class="ma-2" depressed>{{ signer.signer }} </v-btn>
+        <v-chip :color="currentSigner(signer)">{{ signer.signer }} </v-chip>
       </v-badge>
     </div>
   </div>
@@ -37,6 +37,13 @@ export default {
 
         return this.stringifyNumber(1);
       }
+    },
+
+    currentSigner: function(signer) {
+      let prevSigner = this.items[signer.sequence - 1];
+
+      if (signer.signed) return "primary";
+      else if (signer.sequence === 0 || prevSigner.signed) return "success";
     },
 
     stringifyNumber(number) {

@@ -79,8 +79,10 @@ module.exports = {
   devServer: {
     disableHostCheck: true,
     historyApiFallback: true,
-    // https: true,
-    proxy: "https://192.168.0.115",
+    https: true,
+    // proxy: "https://192.168.0.115",
+    proxy: "https://116.193.68.82",
   },
-  publicPath: "./",
+  publicPath: process.env.NODE_ENV === "production" ? "" : "/",
+  outputDir: "./server/public",
 };

@@ -1,28 +1,43 @@
 <template>
   <div class="login-wrapper bg-gradient--megatron">
     <div class="login-container">
-      <div class="login-header">
-        <FoxitIcon
-          style="width: 70px; height: 70px; margin-right: 10px"
-        ></FoxitIcon>
-      </div>
-      <div class="login-content py-2">
-        <v-btn
-          class="text-light"
-          @click="handleLogin"
-          rounded
-          large
-          outlined
-          style="min-width: 50%"
-        >
-          <!-- <FoxitIcon style="width: 24px; height: 24px; margin-right: 10px"></FoxitIcon> -->
-          Login With
-          <FoxitLogo
-            class="logo"
-            style="height: 24px; margin-right: 10px"
-          ></FoxitLogo>
-        </v-btn>
-      </div>
+      <template v-if="this.isLoginCallback">
+        <v-overlay :value="overlay">
+          <v-progress-linear
+            indeterminate
+            color="white"
+            rounded
+          ></v-progress-linear>
+          <div style="margin-top: 20px" class="center-text">
+            Please wait...
+          </div>
+        </v-overlay>
+      </template>
+      <template v-else>
+        <div class="login-header">
+          <FoxitIcon
+            style="width: 70px; height: 70px; margin-right: 10px"
+          ></FoxitIcon>
+        </div>
+        <div class="login-content py-2">
+          <v-btn
+            class="text-light"
+            @click="handleLogin"
+            rounded
+            large
+            outlined
+            style="min-width: 50%"
+          >
+            <!-- <FoxitIcon style="width: 24px; height: 24px; margin-right: 10px"></FoxitIcon> -->
+            {{ isLoggedIn ? "Logging in..." : "Login with " }}
+            <FoxitLogo
+              v-if="!isLoggedIn"
+              class="logo"
+              style="height: 24px; margin-right: 10px"
+            ></FoxitLogo>
+          </v-btn>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -40,6 +55,13 @@ export default {
     FoxitLogo,
     FoxitIcon,
   },
+
+  data: function() {
+    return {
+      isLoginCallback: false,
+    };
+  },
+
   created: function() {
     const localState = StorageHelper.getItem("state");
     const { state, code } = this.$route.query;
@@ -48,6 +70,7 @@ export default {
     // Retrieve the state save from local storage and check with the 'state' return from auth callback
     if (code && state === localState) {
       console.log(`Verified`);
+      this.isLoginCallback = true;
       const formData = {
         code: code,
         redirectUri: "https://wvs2.foxit.co.jp/documents/login",
